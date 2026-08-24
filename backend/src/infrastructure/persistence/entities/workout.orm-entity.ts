@@ -33,25 +33,25 @@ export class WorkoutOrmEntity {
   location!: string | null;
 
   @Column({ type: 'simple-json', nullable: true })
-  energy!: unknown;
+  energy!: any;
 
   @Column({ type: 'simple-json', name: 'distance_speed', nullable: true })
-  distanceSpeed!: unknown;
+  distanceSpeed!: any;
 
   @Column({ type: 'simple-json', nullable: true })
-  elevation!: unknown;
+  elevation!: any;
 
   @Column({ type: 'simple-json', name: 'heart_rate', nullable: true })
-  heartRate!: unknown;
+  heartRate!: any;
 
   @Column({ type: 'simple-json', nullable: true })
-  route!: unknown;
+  route!: any;
 
   @Column({ type: 'simple-json', name: 'time_series', nullable: true })
-  timeSeries!: unknown;
+  timeSeries!: any;
 
   @Column({ type: 'simple-json', nullable: true })
-  metadata!: unknown;
+  metadata!: any;
 
   @CreateDateColumn({ type: 'datetime', name: 'ingested_at' })
   ingestedAt!: Date;

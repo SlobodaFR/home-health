@@ -36,7 +36,7 @@ export class HealthMetricOrmEntity {
   source!: string;
 
   @Column({ type: 'simple-json' })
-  payload!: unknown;
+  payload!: any;
 
   @CreateDateColumn({ type: 'datetime', name: 'ingested_at' })
   ingestedAt!: Date;

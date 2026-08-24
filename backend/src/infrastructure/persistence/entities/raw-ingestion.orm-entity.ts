@@ -29,7 +29,7 @@ export class RawIngestionOrmEntity {
   dataType!: string;
 
   @Column({ type: 'simple-json' })
-  payload!: unknown;
+  payload!: any;
 
   @CreateDateColumn({ type: 'datetime', name: 'received_at' })
   receivedAt!: Date;

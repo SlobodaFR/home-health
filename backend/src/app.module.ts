@@ -5,6 +5,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { DatabaseModule } from './infrastructure/persistence/database.module';
 import { ApiKeysModule } from './interfaces/http/modules/api-keys.module';
 import { AuthModule } from './interfaces/http/modules/auth.module';
+import { HealthIngestionModule } from './interfaces/http/modules/health-ingestion.module';
 import { StatusModule } from './interfaces/http/modules/status.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { StatusModule } from './interfaces/http/modules/status.module';
     }),
     AuthModule,
     ApiKeysModule,
+    HealthIngestionModule,
     StatusModule,
   ],
 })

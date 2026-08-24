@@ -57,4 +57,12 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  {
+    // JSON/simple-json columns are typed `any` (not `unknown`) so TypeORM's
+    // QueryDeepPartialEntity mapped type accepts them in save()/upsert() calls.
+    files: ['**/*.orm-entity.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 );
