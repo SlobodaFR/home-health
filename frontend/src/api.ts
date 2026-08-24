@@ -32,15 +32,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function fetchCurrentUser(): Promise<{ user: CurrentUser }> {
-  return request('/auth/me');
+  return request('/api/auth/me');
 }
 
 export function fetchApiKeys(): Promise<ApiKey[]> {
-  return request('/api-keys');
+  return request('/api/api-keys');
 }
 
 export function createApiKey(label: string): Promise<CreatedApiKey> {
-  return request('/api-keys', {
+  return request('/api/api-keys', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ label }),
@@ -48,5 +48,5 @@ export function createApiKey(label: string): Promise<CreatedApiKey> {
 }
 
 export function revokeApiKey(id: string): Promise<void> {
-  return request(`/api-keys/${id}`, { method: 'DELETE' });
+  return request(`/api/api-keys/${id}`, { method: 'DELETE' });
 }

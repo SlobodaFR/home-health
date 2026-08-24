@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
@@ -14,6 +14,13 @@ const MAX_PAYLOAD_SIZE = process.env.MAX_PAYLOAD_SIZE
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
+  // Consistent with the rest of the home-* apps: everything lives under
+  // /api/**, except health/status (liveness probes expect a stable,
+  // unversioned path) and openapi.json (mounted directly by SwaggerModule
+  // below, unaffected by this prefix either way).
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'health/status', method: RequestMethod.GET }],
+  });
   app.use(json({ limit: MAX_PAYLOAD_SIZE }));
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(cookieParser());

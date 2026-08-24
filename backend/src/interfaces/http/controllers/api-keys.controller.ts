@@ -64,8 +64,11 @@ export class ApiKeysController {
       id: created.id,
       label: created.label,
       rawKey: created.rawKey,
-      ingestUrl: new URL(`/health/${created.rawKey}`, publicUrl).toString(),
-      readBaseUrl: new URL(`/health/${created.rawKey}`, publicUrl).toString(),
+      ingestUrl: new URL(`/api/health/${created.rawKey}`, publicUrl).toString(),
+      readBaseUrl: new URL(
+        `/api/health/${created.rawKey}`,
+        publicUrl,
+      ).toString(),
       createdAt: created.createdAt.toISOString(),
     };
   }

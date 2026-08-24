@@ -14,14 +14,19 @@ même pattern que `home-remote-mcps`, pas un service API nu.
 
 ```
 Health Auto Export (iPhone)
-        │  POST /health/:apiKey   (JSON, headers automation-*)
+        │  POST /api/health/:apiKey   (JSON, headers automation-*)
         ▼
    home-health  ──▶ SQLite (WAL) ──▶ Litestream ──▶ MinIO
         ▲
-        │  GET /health/:apiKey/...
+        │  GET /api/health/:apiKey/...
         │  GET /openapi.json
 home-remote-mcps  ──▶ tools MCP  ──▶ LLM
 ```
+
+Toutes les routes vivent sous `/api/**` (cohérence avec le reste des apps
+`home-*`), sauf `GET /health/status` (liveness - path stable attendu par les
+outils d'infra) et `GET /openapi.json` (monté directement par Swagger,
+indépendant du préfixe applicatif).
 
 ## 3. Précédent : `home-remote-mcps`
 
@@ -44,15 +49,15 @@ Claude). Repris quasi à l'identique :
   home-auth — `OAuthClient` (login/callback/refresh), cookies
   `access_token`/`refresh_token` httpOnly, `JwtAuthGuard` (vérifie le cookie,
   retente via refresh token si expiré), `RevokedSessionRepository` +
-  webhook `POST /auth/disconnect?secret=...` pour la révocation immédiate
+  webhook `POST /api/auth/disconnect?secret=...` pour la révocation immédiate
   côté home-auth. Vérification JWT : `jose` + `createRemoteJWKSet` sur
   `{AUTH_SERVICE_URL}/.well-known/jwks.json`, payload validé sur la présence
   de `sub`/`email`/`name`/`iat` (pas de check `iss`/`aud` côté
   `home-remote-mcps` actuel — repris tel quel).
 - home-health s'enregistre comme client OAuth2 confidentiel via
   `/admin/clients` sur home-auth (`AUTH_CLIENT_ID=home-health`,
-  `redirect_uri` = `{PUBLIC_BASE_URL}/auth/callback`,
-  `logoutWebhookUrl` = `{PUBLIC_BASE_URL}/auth/disconnect`).
+  `redirect_uri` = `{PUBLIC_BASE_URL}/api/auth/callback`,
+  `logoutWebhookUrl` = `{PUBLIC_BASE_URL}/api/auth/disconnect`).
 - Déploiement : GHCR + GitHub Actions + 1Password + SSH + Caddy — détaillé
   en § 9, repris quasi à l'identique (une seule image ici, pas de sidecar
   type `garmin-connector`).
@@ -74,7 +79,7 @@ base64url>`), retournée **une seule fois**. Seul le hash `scrypt` est
   physique — cohérent avec `raw_ingestions` qui référence `userId` et pas
   `apiKeyId` (l'historique d'ingestion survit à la révocation d'une clé).
 
-### 4.2 Auth des endpoints `/health/:apiKey/*` (machine-to-machine)
+### 4.2 Auth des endpoints `/api/health/:apiKey/*` (machine-to-machine)
 
 - Pas de JWT ici : l'`apiKey` dans le path fait office de secret partagé.
 - Guard : hash `scrypt` de l'`apiKey` reçue comparé en temps constant
@@ -160,24 +165,26 @@ observé via `raw_ingestions`.
 
 ## 6. Endpoints
 
+Tout sous `/api/**`, sauf les deux dernières lignes (voir § 2) :
+
 ```
-POST   /health/:apiKey                       Ingestion (type déduit des clés
-                                              présentes dans "data")
+POST   /api/health/:apiKey                       Ingestion (type déduit des clés
+                                                  présentes dans "data")
 
-GET    /health/:apiKey/metrics               ?name=&from=&to=&limit=
-GET    /health/:apiKey/metrics/:name         ?from=&to=
-GET    /health/:apiKey/workouts              ?from=&to=&limit=
-GET    /health/:apiKey/workouts/:id
-GET    /health/:apiKey/symptoms              ?from=&to=
-GET    /health/:apiKey/ecg                   ?from=&to=
-GET    /health/:apiKey/heart-rate-notifications ?from=&to=
-GET    /health/:apiKey/state-of-mind         ?from=&to=
-GET    /health/:apiKey/cycle-tracking        ?from=&to=
-GET    /health/:apiKey/medications           ?from=&to=
+GET    /api/health/:apiKey/metrics               ?name=&from=&to=&limit=
+GET    /api/health/:apiKey/metrics/:name         ?from=&to=
+GET    /api/health/:apiKey/workouts              ?from=&to=&limit=
+GET    /api/health/:apiKey/workouts/:id
+GET    /api/health/:apiKey/symptoms              ?from=&to=
+GET    /api/health/:apiKey/ecg                   ?from=&to=
+GET    /api/health/:apiKey/heart-rate-notifications ?from=&to=
+GET    /api/health/:apiKey/state-of-mind         ?from=&to=
+GET    /api/health/:apiKey/cycle-tracking        ?from=&to=
+GET    /api/health/:apiKey/medications           ?from=&to=
 
-POST   /api-keys        (Bearer JWT home-auth)
-GET    /api-keys        (Bearer JWT home-auth)
-DELETE /api-keys/:id    (Bearer JWT home-auth)
+POST   /api/api-keys        (Bearer JWT home-auth)
+GET    /api/api-keys        (Bearer JWT home-auth)
+DELETE /api/api-keys/:id    (Bearer JWT home-auth)
 
 GET    /openapi.json
 GET    /health/status   (liveness, pas d'auth)

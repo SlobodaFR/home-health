@@ -40,7 +40,7 @@ export function App(): JSX.Element {
           <div style={{ marginTop: 24 }}>
             <a
               className="btn btn-primary"
-              href="/auth/login"
+              href="/api/auth/login"
               style={{ textDecoration: 'none', display: 'inline-block' }}
             >
               Se connecter avec home-auth
@@ -62,10 +62,10 @@ export function App(): JSX.Element {
             </span>
             <a
               className="text-link"
-              href="/auth/logout"
+              href="/api/auth/logout"
               onClick={(e) => {
                 e.preventDefault();
-                void fetch('/auth/logout', {
+                void fetch('/api/auth/logout', {
                   method: 'POST',
                   credentials: 'include',
                 }).then(() => {

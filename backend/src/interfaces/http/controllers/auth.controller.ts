@@ -76,7 +76,7 @@ export class AuthController {
 
   private callbackUrl(): string {
     return new URL(
-      '/auth/callback',
+      '/api/auth/callback',
       this.config.getOrThrow<string>('PUBLIC_BASE_URL'),
     ).toString();
   }

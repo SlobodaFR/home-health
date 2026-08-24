@@ -14,9 +14,10 @@ import { StatusModule } from './interfaces/http/modules/status.module';
     DatabaseModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'public'),
-      // Backend routes (health/*, api-keys/*, auth/*, openapi.json) are excluded
-      // from the SPA fallback so the frontend can be served at the root path.
-      exclude: ['/health*', '/api-keys*', '/auth*', '/openapi.json'],
+      // Backend routes (everything under /api/**, plus health/status and
+      // openapi.json which stay unprefixed - see main.ts) are excluded from
+      // the SPA fallback so the frontend can be served at the root path.
+      exclude: ['/api*', '/health/status', '/openapi.json'],
     }),
     AuthModule,
     ApiKeysModule,
