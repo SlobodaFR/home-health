@@ -50,9 +50,9 @@ export function ApiKeysPage(): JSX.Element {
   return (
     <section>
       <h2>Cles API</h2>
-      {error && <p role="alert">{error}</p>}
+      {error && <div className="error-banner">{error}</div>}
 
-      <form onSubmit={handleCreate}>
+      <form className="form-row" onSubmit={handleCreate}>
         <input
           type="text"
           value={label}
@@ -61,45 +61,53 @@ export function ApiKeysPage(): JSX.Element {
           }}
           placeholder="Label (ex. iPhone Thomas)"
         />
-        <button type="submit">Creer une cle</button>
+        <button className="btn btn-primary" type="submit">
+          Creer une cle
+        </button>
       </form>
 
       {created && (
-        <div role="status">
+        <div className="callout" role="status">
           <p>
             Cle creee - copiez-la maintenant, elle ne sera plus jamais affichee
-            :<br />
-            <code>{created.rawKey}</code>
+            :<code>{created.rawKey}</code>
           </p>
           <p>
             URL a coller dans le champ "Cle" de l&apos;automation REST API de
-            Health Auto Export :
-            <br />
-            <code>{created.ingestUrl}</code>
+            Health Auto Export :<code>{created.ingestUrl}</code>
           </p>
         </div>
       )}
 
-      <ul>
-        {keys.map((key) => (
-          <li key={key.id}>
-            {key.label} - creee le{' '}
-            {new Date(key.createdAt).toLocaleDateString()}
-            {key.revokedAt ? (
-              ' (revoquee)'
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  handleRevoke(key.id);
-                }}
-              >
-                Revoquer
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      {keys.length === 0 ? (
+        <p className="empty-state">Aucune cle API pour le moment.</p>
+      ) : (
+        <ul className="key-list">
+          {keys.map((key) => (
+            <li className="key-row" key={key.id}>
+              <div className="key-row-info">
+                <span className="key-row-label">{key.label}</span>
+                <span className="key-row-date">
+                  creee le {new Date(key.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              {key.revokedAt ? (
+                <span className="badge">Revoquee</span>
+              ) : (
+                <button
+                  className="btn btn-danger"
+                  type="button"
+                  onClick={() => {
+                    handleRevoke(key.id);
+                  }}
+                >
+                  Revoquer
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
