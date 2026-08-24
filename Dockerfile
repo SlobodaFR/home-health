@@ -50,6 +50,12 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/node_modules node_modules
+# better-sqlite3 lands nested in backend/node_modules rather than hoisted to
+# the root: npm workspaces keeps it there because typeorm's peerDependency
+# range only covers up to ^12 while backend/package.json declares ^13 - a
+# real version mismatch (13 works fine in practice), not a bug to "fix" by
+# forcing hoisting. Root node_modules alone is missing it at runtime.
+COPY --from=backend-build /app/backend/node_modules backend/node_modules
 COPY --from=backend-build /app/backend/dist backend/dist
 COPY --from=backend-build /app/backend/package.json backend/package.json
 COPY backend/litestream.yml backend/litestream.yml
