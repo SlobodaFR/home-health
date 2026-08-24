@@ -2,17 +2,20 @@
 
 # ---------- Frontend build ----------
 FROM node:26-bookworm-slim AS frontend-build
-# --workspace=frontend skips root devDependencies (incl. husky), but the
-# root "prepare" script still runs and would fail trying to exec it. No
-# .git here anyway, so hooks have nothing to install.
+# No .git here, so husky's "prepare" hook has nothing to install - HUSKY=0
+# makes it a no-op instead of a warning.
 ENV HUSKY=0
+# npm install at the root (even --workspace-scoped) resolves the whole
+# workspace tree, including backend's native deps (better-sqlite3) - so
+# this stage needs the same build toolchain as backend-build.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY frontend/package.json frontend/package.json
 COPY backend/package.json backend/package.json
-# Scoped to the frontend workspace so this stage never needs to compile
-# backend's native deps (better-sqlite3) - it has no build toolchain.
-RUN npm install --workspace=frontend
+RUN npm install
 COPY frontend frontend
 RUN npm run build --workspace=frontend
 
