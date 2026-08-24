@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ormEntities } from './entities';
 
 @Module({
   imports: [
@@ -14,12 +15,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           'data/home-health.sqlite',
         ),
         enableWAL: true,
-        autoLoadEntities: true,
+        entities: ormEntities,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*.js'],
         synchronize: false,
       }),
     }),
+    TypeOrmModule.forFeature(ormEntities),
   ],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
