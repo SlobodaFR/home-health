@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DEPLOY_DIR="${DEPLOY_DIR:-/opt/home-health}"
+DEPLOY_DIR="${DEPLOY_DIR:-/opt/health}"
 IMAGE="${IMAGE:-ghcr.io/slobodafr/home-health}"
 
 cd "$DEPLOY_DIR/deploy"
