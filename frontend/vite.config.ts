@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/api-keys': 'http://localhost:3000',
       '/health': 'http://localhost:3000',
+      '/auth': 'http://localhost:3000',
     },
   },
 });

@@ -21,8 +21,6 @@ import { ormEntities } from './entities';
         synchronize: false,
       }),
     }),
-    TypeOrmModule.forFeature(ormEntities),
   ],
-  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
