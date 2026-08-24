@@ -1,5 +1,11 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetWorkoutUseCase } from '../../../application/health-data/get-workout.use-case';
 import { ListHealthMetricsUseCase } from '../../../application/health-data/list-health-metrics.use-case';
 import { ListMinimalHealthRecordsUseCase } from '../../../application/health-data/list-minimal-health-records.use-case';
@@ -19,10 +25,14 @@ import {
 } from '../presenters/minimal-health-record.presenter';
 import { toWorkoutDto, WorkoutDto } from '../presenters/workout.presenter';
 
+const UNDOCUMENTED_TYPE_NOTE =
+  ' Payload format is not publicly documented by Auto Export, see DESIGN.md §12.';
+
 @ApiTags('health-data')
 @Public()
 @UseGuards(ApiKeyGuard)
 @ApiParam({ name: 'apiKey', description: 'API key issued via POST /api-keys.' })
+@ApiNotFoundResponse({ description: 'Unknown or revoked API key.' })
 @Controller('health/:apiKey')
 export class HealthReadController {
   constructor(
@@ -37,6 +47,7 @@ export class HealthReadController {
     summary:
       'List health metrics (step count, heart rate, ...), most recent first.',
   })
+  @ApiOkResponse({ type: HealthMetricDto, isArray: true })
   async metrics(
     @ApiKeyUser() userId: string,
     @Query() query: ListHealthMetricsQueryDto,
@@ -50,6 +61,7 @@ export class HealthReadController {
     summary:
       'List data points for a single metric name (e.g. step_count), most recent first.',
   })
+  @ApiOkResponse({ type: HealthMetricDto, isArray: true })
   async metricsByName(
     @ApiKeyUser() userId: string,
     @Param('name') name: string,
@@ -66,6 +78,7 @@ export class HealthReadController {
 
   @Get('workouts')
   @ApiOperation({ summary: 'List workouts, most recent first.' })
+  @ApiOkResponse({ type: WorkoutDto, isArray: true })
   async workouts(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -76,6 +89,10 @@ export class HealthReadController {
 
   @Get('workouts/:id')
   @ApiOperation({ summary: 'Get a single workout by id.' })
+  @ApiOkResponse({ type: WorkoutDto })
+  @ApiNotFoundResponse({
+    description: 'Unknown API key, or no workout with this id for this user.',
+  })
   async workout(
     @ApiKeyUser() userId: string,
     @Param('id') id: string,
@@ -87,8 +104,9 @@ export class HealthReadController {
   @Get('symptoms')
   @ApiOperation({
     summary:
-      'List logged symptoms, most recent first. Payload format is not publicly documented by Auto Export.',
+      'List logged symptoms, most recent first.' + UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   symptoms(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -98,9 +116,9 @@ export class HealthReadController {
 
   @Get('ecg')
   @ApiOperation({
-    summary:
-      'List ECG readings, most recent first. Payload format is not publicly documented by Auto Export.',
+    summary: 'List ECG readings, most recent first.' + UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   ecg(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -111,9 +129,10 @@ export class HealthReadController {
   @Get('heart-rate-notifications')
   @ApiOperation({
     summary:
-      'List heart rate notifications (high/low/irregular alerts), most recent first. ' +
-      'Payload format is not publicly documented by Auto Export.',
+      'List heart rate notifications (high/low/irregular alerts), most recent first.' +
+      UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   heartRateNotifications(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -124,8 +143,9 @@ export class HealthReadController {
   @Get('state-of-mind')
   @ApiOperation({
     summary:
-      'List state of mind entries, most recent first. Payload format is not publicly documented by Auto Export.',
+      'List state of mind entries, most recent first.' + UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   stateOfMind(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -136,8 +156,10 @@ export class HealthReadController {
   @Get('cycle-tracking')
   @ApiOperation({
     summary:
-      'List cycle tracking entries, most recent first. Payload format is not publicly documented by Auto Export.',
+      'List cycle tracking entries, most recent first.' +
+      UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   cycleTracking(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,
@@ -148,8 +170,9 @@ export class HealthReadController {
   @Get('medications')
   @ApiOperation({
     summary:
-      'List logged medications, most recent first. Payload format is not publicly documented by Auto Export.',
+      'List logged medications, most recent first.' + UNDOCUMENTED_TYPE_NOTE,
   })
+  @ApiOkResponse({ type: MinimalHealthRecordDto, isArray: true })
   medications(
     @ApiKeyUser() userId: string,
     @Query() query: DateRangeQueryDto,

@@ -8,7 +8,14 @@ import {
   Post,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateApiKeyUseCase } from '../../../application/api-keys/create-api-key.use-case';
 import { ListApiKeysUseCase } from '../../../application/api-keys/list-api-keys.use-case';
 import { RevokeApiKeyUseCase } from '../../../application/api-keys/revoke-api-key.use-case';
@@ -35,6 +42,7 @@ export class ApiKeysController {
   @ApiOperation({
     summary: "List the current user's API keys (never the raw key value).",
   })
+  @ApiOkResponse({ type: ApiKeyDto, isArray: true })
   async list(@CurrentUser() user: CurrentUserPayload): Promise<ApiKeyDto[]> {
     const keys = await this.listApiKeys.execute(user.id);
     return keys.map(toApiKeyDto);
@@ -45,6 +53,7 @@ export class ApiKeysController {
     summary:
       'Create a new API key. The raw key is only ever returned in this response.',
   })
+  @ApiCreatedResponse({ type: CreateApiKeyResponseDto })
   async create(
     @CurrentUser() user: CurrentUserPayload,
     @Body() dto: CreateApiKeyDto,
@@ -66,6 +75,7 @@ export class ApiKeysController {
   @ApiOperation({
     summary: 'Revoke an API key. Irreversible - a new key must be issued.',
   })
+  @ApiNoContentResponse()
   async revoke(
     @CurrentUser() user: CurrentUserPayload,
     @Param('id') id: string,

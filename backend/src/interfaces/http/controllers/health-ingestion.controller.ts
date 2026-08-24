@@ -6,7 +6,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request } from 'express';
 import { IngestHealthDataUseCase } from '../../../application/ingestion/ingest-health-data.use-case';
 import { isJsonObject } from '../../../application/ingestion/json-object';
@@ -14,6 +20,7 @@ import { ApiKeyUser } from '../decorators/api-key-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { AutoExportPayloadDto } from '../dto/ingest-health-data.dto';
 import { ApiKeyGuard } from '../guards/api-key.guard';
+import { IngestResponseDto } from '../presenters/ingest-response.dto';
 
 @ApiTags('ingestion')
 @Public()
@@ -35,6 +42,8 @@ export class HealthIngestionController {
       'automation. Accepts the standard Auto Export payload shape: { "data": { "metrics"?: [...], ' +
       '"workouts"?: [...], ... } }. Idempotent - safe to retry or receive the same batch twice.',
   })
+  @ApiCreatedResponse({ type: IngestResponseDto })
+  @ApiNotFoundResponse({ description: 'Unknown or revoked API key.' })
   async ingest(
     @ApiKeyUser() userId: string,
     @Body() _dto: AutoExportPayloadDto,
@@ -42,7 +51,7 @@ export class HealthIngestionController {
     @Headers('automation-id') automationId?: string,
     @Headers('automation-name') automationName?: string,
     @Headers('session-id') sessionId?: string,
-  ): Promise<{ received: string[] }> {
+  ): Promise<IngestResponseDto> {
     // Read the raw, untransformed body for extraction: the DTO above only
     // gates malformed envelopes (400s), it must not be the source of the
     // data we store - class-validator's whitelist would silently drop any

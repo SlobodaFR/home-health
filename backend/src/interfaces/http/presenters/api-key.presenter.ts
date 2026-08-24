@@ -1,11 +1,21 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { ApiKey } from '../../../domain/api-key/api-key';
 
-export interface ApiKeyDto {
-  id: string;
-  label: string;
-  lastUsedAt: string | null;
-  createdAt: string;
-  revokedAt: string | null;
+export class ApiKeyDto {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty({ example: 'iPhone Thomas' })
+  label!: string;
+
+  @ApiProperty({ nullable: true, example: null })
+  lastUsedAt!: string | null;
+
+  @ApiProperty()
+  createdAt!: string;
+
+  @ApiProperty({ nullable: true, example: null })
+  revokedAt!: string | null;
 }
 
 /** Never exposes hashedKey. */
