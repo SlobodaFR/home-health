@@ -7,6 +7,9 @@ import { WorkoutRepository } from '../../../domain/workout/workout.repository';
 import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { WorkoutOrmEntity } from '../entities/workout.orm-entity';
 
+// 13 columns per row; keeps every batch well under SQLite's parameter limit.
+const SAVE_CHUNK_SIZE = 50;
+
 @Injectable()
 export class TypeOrmWorkoutRepository extends WorkoutRepository {
   constructor(
@@ -21,7 +24,7 @@ export class TypeOrmWorkoutRepository extends WorkoutRepository {
       return;
     }
     // save() upserts on the primary key (id) - already the natural key here.
-    await this.repository.save(workouts);
+    await this.repository.save(workouts, { chunk: SAVE_CHUNK_SIZE });
   }
 
   async list(userId: string, query: DateRangeQuery): Promise<Workout[]> {

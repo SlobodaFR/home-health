@@ -6,9 +6,13 @@ import {
   HealthMetricRepository,
   ListHealthMetricsQuery,
 } from '../../../domain/health-metric/health-metric.repository';
+import { chunk } from '../../../domain/shared/chunk';
 import { deterministicId } from '../../../domain/shared/hash';
 import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { HealthMetricOrmEntity } from '../entities/health-metric.orm-entity';
+
+// 7 columns per row; keeps every batch well under SQLite's parameter limit.
+const UPSERT_CHUNK_SIZE = 100;
 
 @Injectable()
 export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
@@ -43,9 +47,11 @@ export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       payload: metric.payload as any,
     }));
-    await this.repository.upsert(rows, {
-      conflictPaths: ['userId', 'name', 'date', 'source'],
-    });
+    for (const batch of chunk(rows, UPSERT_CHUNK_SIZE)) {
+      await this.repository.upsert(batch, {
+        conflictPaths: ['userId', 'name', 'date', 'source'],
+      });
+    }
   }
 
   async list(

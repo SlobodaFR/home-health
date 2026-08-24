@@ -75,4 +75,22 @@ describe('TypeOrmHealthMetricRepository', () => {
     });
     expect(rows).toHaveLength(1);
   });
+
+  it("upserts a batch large enough to exceed SQLite's per-statement parameter limit", async () => {
+    const bigBatch = Array.from({ length: 2000 }, (_, i) =>
+      metric({
+        userId: 'user-big-batch',
+        name: 'heart_rate',
+        date: `2026-02-${String((i % 28) + 1).padStart(2, '0')}T${String(i % 24).padStart(2, '0')}:00:00`,
+      }),
+    );
+
+    await expect(repository.upsertMany(bigBatch)).resolves.not.toThrow();
+
+    const rows = await repository.list('user-big-batch', {
+      name: 'heart_rate',
+      limit: 1000,
+    });
+    expect(rows.length).toBeGreaterThan(0);
+  });
 });

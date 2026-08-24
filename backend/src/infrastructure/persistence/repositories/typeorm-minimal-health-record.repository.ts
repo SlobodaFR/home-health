@@ -16,6 +16,9 @@ import { MinimalHealthRecordOrmEntity } from '../entities/minimal-health-record.
 import { StateOfMindEntryOrmEntity } from '../entities/state-of-mind-entry.orm-entity';
 import { SymptomOrmEntity } from '../entities/symptom.orm-entity';
 
+// 4 columns per row; keeps every batch well under SQLite's parameter limit.
+const SAVE_CHUNK_SIZE = 200;
+
 const ENTITY_BY_KIND: Record<
   MinimalHealthRecordKind,
   EntityTarget<MinimalHealthRecordOrmEntity>
@@ -56,7 +59,7 @@ export class TypeOrmMinimalHealthRecordRepository extends MinimalHealthRecordRep
       date: record.date,
       payload: record.payload,
     }));
-    await repository.save(rows);
+    await repository.save(rows, { chunk: SAVE_CHUNK_SIZE });
   }
 
   async list(
