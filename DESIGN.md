@@ -237,6 +237,9 @@ même modèle `home-*` donc fait référence fiable) :
   `deploy/scripts/update-vps.sh` (pull + `docker compose up -d` +
   reload Caddy via un fichier `sites/home-health.Caddyfile`).
 - **Domaine** : `health.sloboda.fr` (confirmé).
+- **Port local (VPS)** : `127.0.0.1:3007` → conteneur `:3000` (`home-remote-mcps`
+  utilise déjà 3006 sur le même VPS) — **à confirmer** qu'il n'entre pas en
+  conflit avec un autre service `home-*` déjà déployé, voir § 12.
 - Réplication SQLite → MinIO via Litestream, `litestream.yml` +
   `docker-entrypoint.sh` copiés du pattern `home-remote-mcps` (restore au
   démarrage si `MINIO_BUCKET` défini, puis `litestream replicate -exec`).
@@ -293,3 +296,21 @@ MAX_PAYLOAD_SIZE=
    `/admin/clients` de home-auth : à faire manuellement par l'utilisateur
    avant le premier déploiement (comme pour `home-remote-mcps`), pas
    automatisable depuis ce repo.
+4. **Port `127.0.0.1:3007`** côté VPS (§ 9) : choisi par élimination (3006
+   déjà pris par `home-remote-mcps`), pas vérifié contre la liste réelle des
+   ports déjà utilisés par les autres apps `home-*` sur le VPS — à confirmer
+   avant le premier déploiement.
+5. **`docker build` non vérifié dans cet environnement** : le daemon Docker
+   local n'a pas d'accès réseau/DNS ici (confirmé indépendamment du
+   Dockerfile, `docker run hello-world` échoue de la même façon). Le
+   Dockerfile est une adaptation fidèle et relue de celui de
+   `home-remote-mcps` (même version Litestream, même logique restore/
+   replicate), mais un vrai `docker build` (en local ou via le job
+   `docker-build-check` de la CI) reste à faire avant le premier déploiement.
+6. **Champs 1Password à créer** avant le premier déploiement, dans le même
+   vault que les autres apps `home-*` (`TECH/thomassloboda_home_secrets`) :
+   `HEALTH_AUTH_CLIENT_ID`, `HEALTH_AUTH_SECRET`, `HEALTH_AUTH_WEBHOOK_SECRET`,
+   `HEALTH_FRONTEND_URL`, `HEALTH_DATABASE_PATH`, `HEALTH_MINIO_REPLICA_PATH`
+   — les autres champs référencés par `deploy-vps.yml` (`VPS_HOST`,
+   `VPS_USER`, `VPS_PRIVATE_KEY`, `AUTH_BASE_URL`, `MINIO_*`) sont déjà
+   partagés avec les autres apps `home-*` et n'ont pas besoin d'être recréés.

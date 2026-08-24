@@ -1,0 +1,17 @@
+name: home-health
+
+services:
+  home-health:
+    image: ${IMAGE}:${IMAGE_TAG}
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '127.0.0.1:3007:3000'
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - home-health-data:/app/backend/data
+
+volumes:
+  home-health-data:
