@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { HealthMetric } from '../../../domain/health-metric/health-metric';
-import { HealthMetricRepository } from '../../../domain/health-metric/health-metric.repository';
+import {
+  HealthMetricRepository,
+  ListHealthMetricsQuery,
+} from '../../../domain/health-metric/health-metric.repository';
 import { deterministicId } from '../../../domain/shared/hash';
+import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { HealthMetricOrmEntity } from '../entities/health-metric.orm-entity';
 
 @Injectable()
@@ -43,4 +47,35 @@ export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
       conflictPaths: ['userId', 'name', 'date', 'source'],
     });
   }
+
+  async list(
+    userId: string,
+    query: ListHealthMetricsQuery,
+  ): Promise<HealthMetric[]> {
+    const where: FindOptionsWhere<HealthMetricOrmEntity> = { userId };
+    if (query.name) {
+      where.name = query.name;
+    }
+    const dateWhere = dateRangeWhere(query);
+    if (dateWhere) {
+      where.date = dateWhere;
+    }
+    const rows = await this.repository.find({
+      where,
+      order: { date: 'DESC' },
+      take: clampLimit(query.limit),
+    });
+    return rows.map(toDomain);
+  }
+}
+
+function toDomain(row: HealthMetricOrmEntity): HealthMetric {
+  return {
+    userId: row.userId,
+    name: row.name,
+    units: row.units,
+    date: row.date,
+    source: row.source,
+    payload: row.payload,
+  };
 }

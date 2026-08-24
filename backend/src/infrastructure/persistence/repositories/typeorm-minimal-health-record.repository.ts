@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, EntityTarget } from 'typeorm';
+import { DataSource, EntityTarget, FindOptionsWhere } from 'typeorm';
 import {
   MinimalHealthRecord,
   MinimalHealthRecordKind,
 } from '../../../domain/minimal-health-record/minimal-health-record';
 import { MinimalHealthRecordRepository } from '../../../domain/minimal-health-record/minimal-health-record.repository';
+import { DateRangeQuery } from '../../../domain/shared/date-range-query';
 import { deterministicId } from '../../../domain/shared/hash';
+import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { CycleTrackingEntryOrmEntity } from '../entities/cycle-tracking-entry.orm-entity';
 import { EcgReadingOrmEntity } from '../entities/ecg-reading.orm-entity';
 import { HeartRateNotificationOrmEntity } from '../entities/heart-rate-notification.orm-entity';
@@ -55,5 +57,28 @@ export class TypeOrmMinimalHealthRecordRepository extends MinimalHealthRecordRep
       payload: record.payload,
     }));
     await repository.save(rows);
+  }
+
+  async list(
+    kind: MinimalHealthRecordKind,
+    userId: string,
+    query: DateRangeQuery,
+  ): Promise<MinimalHealthRecord[]> {
+    const repository = this.dataSource.getRepository(ENTITY_BY_KIND[kind]);
+    const where: FindOptionsWhere<MinimalHealthRecordOrmEntity> = { userId };
+    const dateWhere = dateRangeWhere(query);
+    if (dateWhere) {
+      where.date = dateWhere;
+    }
+    const rows = await repository.find({
+      where,
+      order: { date: 'DESC' },
+      take: clampLimit(query.limit),
+    });
+    return rows.map((row) => ({
+      userId: row.userId,
+      date: row.date,
+      payload: row.payload as unknown,
+    }));
   }
 }

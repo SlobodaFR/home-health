@@ -38,18 +38,22 @@ describe('IngestHealthDataUseCase', () => {
         metrics.push(...rows);
         return Promise.resolve();
       },
+      list: () => Promise.resolve([]),
     };
     const workoutRepository: WorkoutRepository = {
       upsertMany: (rows) => {
         workouts.push(...rows);
         return Promise.resolve();
       },
+      list: () => Promise.resolve([]),
+      findById: () => Promise.resolve(null),
     };
     const minimalHealthRecordRepository: MinimalHealthRecordRepository = {
       upsertMany: (kind, records) => {
         minimalRecords.push({ kind, records });
         return Promise.resolve();
       },
+      list: () => Promise.resolve([]),
     };
 
     useCase = new IngestHealthDataUseCase(

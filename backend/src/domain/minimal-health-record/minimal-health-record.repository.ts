@@ -1,3 +1,4 @@
+import { DateRangeQuery } from '../shared/date-range-query';
 import {
   MinimalHealthRecord,
   MinimalHealthRecordKind,
@@ -10,4 +11,9 @@ export abstract class MinimalHealthRecordRepository {
     kind: MinimalHealthRecordKind,
     records: MinimalHealthRecord[],
   ): Promise<void>;
+  abstract list(
+    kind: MinimalHealthRecordKind,
+    userId: string,
+    query: DateRangeQuery,
+  ): Promise<MinimalHealthRecord[]>;
 }
