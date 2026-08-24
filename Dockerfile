@@ -2,6 +2,10 @@
 
 # ---------- Frontend build ----------
 FROM node:26-bookworm-slim AS frontend-build
+# --workspace=frontend skips root devDependencies (incl. husky), but the
+# root "prepare" script still runs and would fail trying to exec it. No
+# .git here anyway, so hooks have nothing to install.
+ENV HUSKY=0
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY frontend/package.json frontend/package.json
@@ -14,6 +18,7 @@ RUN npm run build --workspace=frontend
 
 # ---------- Backend build ----------
 FROM node:26-bookworm-slim AS backend-build
+ENV HUSKY=0
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
