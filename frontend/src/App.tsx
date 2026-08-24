@@ -22,30 +22,22 @@ export function App(): JSX.Element {
   if (loading) {
     return (
       <div className="page">
-        <div className="card center-card">
-          <p className="tagline">Chargement...</p>
-        </div>
+        <p className="tagline center-block">Chargement...</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="page">
-        <div className="card center-card">
-          <h1 className="brand">home-health</h1>
-          <p className="tagline">
-            Ingestion et lecture de vos donnees Apple Health.
-          </p>
-          <div style={{ marginTop: 24 }}>
-            <a
-              className="btn btn-primary"
-              href="/api/auth/login"
-              style={{ textDecoration: 'none', display: 'inline-block' }}
-            >
-              Se connecter avec home-auth
-            </a>
-          </div>
+      <div className="page center-block">
+        <h1 className="brand">home-health</h1>
+        <p className="tagline">
+          Ingestion et lecture de vos donnees Apple Health.
+        </p>
+        <div style={{ marginTop: 24 }}>
+          <a className="btn btn-primary" href="/api/auth/login">
+            Se connecter avec home-auth
+          </a>
         </div>
       </div>
     );
@@ -53,35 +45,31 @@ export function App(): JSX.Element {
 
   return (
     <div className="page">
-      <div className="card">
-        <div className="header-row">
-          <h1 className="brand">home-health</h1>
-          <div className="user-info">
-            <span>
-              <strong>{user.name}</strong> ({user.email})
-            </span>
-            <a
-              className="text-link"
-              href="/api/auth/logout"
-              onClick={(e) => {
-                e.preventDefault();
-                void fetch('/api/auth/logout', {
-                  method: 'POST',
-                  credentials: 'include',
-                }).then(() => {
-                  window.location.reload();
-                });
-              }}
-            >
-              Se deconnecter
-            </a>
-          </div>
+      <div className="header-row">
+        <h1 className="brand">home-health</h1>
+        <div className="user-info">
+          <span>
+            <strong>{user.name}</strong> ({user.email})
+          </span>
+          <a
+            className="link"
+            href="/api/auth/logout"
+            onClick={(e) => {
+              e.preventDefault();
+              void fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+              }).then(() => {
+                window.location.reload();
+              });
+            }}
+          >
+            Se deconnecter
+          </a>
         </div>
       </div>
 
-      <div className="card">
-        <ApiKeysPage />
-      </div>
+      <ApiKeysPage />
     </div>
   );
 }

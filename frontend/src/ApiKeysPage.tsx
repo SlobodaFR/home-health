@@ -68,9 +68,10 @@ export function ApiKeysPage(): JSX.Element {
 
       {created && (
         <div className="callout" role="status">
+          <p className="callout-title">Cle creee</p>
           <p>
-            Cle creee - copiez-la maintenant, elle ne sera plus jamais affichee
-            :<code>{created.rawKey}</code>
+            Copiez-la maintenant, elle ne sera plus jamais affichee :
+            <code>{created.rawKey}</code>
           </p>
           <p>
             URL a coller dans le champ "Cle" de l&apos;automation REST API de
@@ -95,7 +96,7 @@ export function ApiKeysPage(): JSX.Element {
                 <span className="badge">Revoquee</span>
               ) : (
                 <button
-                  className="btn btn-danger"
+                  className="btn btn-outline"
                   type="button"
                   onClick={() => {
                     handleRevoke(key.id);
