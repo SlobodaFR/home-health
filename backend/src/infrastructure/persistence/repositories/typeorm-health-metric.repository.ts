@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere } from 'typeorm';
 import { HealthMetric } from '../../../domain/health-metric/health-metric';
 import {
   HealthMetricRepository,
@@ -10,16 +9,14 @@ import { chunk } from '../../../domain/shared/chunk';
 import { deterministicId } from '../../../domain/shared/hash';
 import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { HealthMetricOrmEntity } from '../entities/health-metric.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 // 7 columns per row; keeps every batch well under SQLite's parameter limit.
 const UPSERT_CHUNK_SIZE = 100;
 
 @Injectable()
 export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
-  constructor(
-    @InjectRepository(HealthMetricOrmEntity)
-    private readonly repository: Repository<HealthMetricOrmEntity>,
-  ) {
+  constructor(private readonly dataSource: DataSource) {
     super();
   }
 
@@ -47,8 +44,9 @@ export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       payload: metric.payload as any,
     }));
+    const manager = currentManager(this.dataSource);
     for (const batch of chunk(rows, UPSERT_CHUNK_SIZE)) {
-      await this.repository.upsert(batch, {
+      await manager.upsert(HealthMetricOrmEntity, batch, {
         conflictPaths: ['userId', 'name', 'date', 'source'],
       });
     }
@@ -66,11 +64,14 @@ export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
     if (dateWhere) {
       where.date = dateWhere;
     }
-    const rows = await this.repository.find({
-      where,
-      order: { date: 'DESC' },
-      take: clampLimit(query.limit),
-    });
+    const rows = await currentManager(this.dataSource).find(
+      HealthMetricOrmEntity,
+      {
+        where,
+        order: { date: 'DESC' },
+        take: clampLimit(query.limit),
+      },
+    );
     return rows.map(toDomain);
   }
 }

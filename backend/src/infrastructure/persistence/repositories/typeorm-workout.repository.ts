@@ -1,21 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, FindOptionsWhere } from 'typeorm';
 import { DateRangeQuery } from '../../../domain/shared/date-range-query';
 import { Workout } from '../../../domain/workout/workout';
 import { WorkoutRepository } from '../../../domain/workout/workout.repository';
 import { clampLimit, dateRangeWhere } from '../date-range-where';
 import { WorkoutOrmEntity } from '../entities/workout.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 // 13 columns per row; keeps every batch well under SQLite's parameter limit.
 const SAVE_CHUNK_SIZE = 50;
 
 @Injectable()
 export class TypeOrmWorkoutRepository extends WorkoutRepository {
-  constructor(
-    @InjectRepository(WorkoutOrmEntity)
-    private readonly repository: Repository<WorkoutOrmEntity>,
-  ) {
+  constructor(private readonly dataSource: DataSource) {
     super();
   }
 
@@ -24,7 +21,9 @@ export class TypeOrmWorkoutRepository extends WorkoutRepository {
       return;
     }
     // save() upserts on the primary key (id) - already the natural key here.
-    await this.repository.save(workouts, { chunk: SAVE_CHUNK_SIZE });
+    await currentManager(this.dataSource).save(WorkoutOrmEntity, workouts, {
+      chunk: SAVE_CHUNK_SIZE,
+    });
   }
 
   async list(userId: string, query: DateRangeQuery): Promise<Workout[]> {
@@ -33,7 +32,7 @@ export class TypeOrmWorkoutRepository extends WorkoutRepository {
     if (dateWhere) {
       where.start = dateWhere;
     }
-    const rows = await this.repository.find({
+    const rows = await currentManager(this.dataSource).find(WorkoutOrmEntity, {
       where,
       order: { start: 'DESC' },
       take: clampLimit(query.limit),
@@ -42,7 +41,10 @@ export class TypeOrmWorkoutRepository extends WorkoutRepository {
   }
 
   async findById(userId: string, id: string): Promise<Workout | null> {
-    const row = await this.repository.findOne({ where: { id, userId } });
+    const row = await currentManager(this.dataSource).findOne(
+      WorkoutOrmEntity,
+      { where: { id, userId } },
+    );
     return row ? toDomain(row) : null;
   }
 }

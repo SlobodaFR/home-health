@@ -7,6 +7,7 @@ import {
 import { MinimalHealthRecordRepository } from '../../domain/minimal-health-record/minimal-health-record.repository';
 import { RawIngestion } from '../../domain/raw-ingestion/raw-ingestion';
 import { RawIngestionRepository } from '../../domain/raw-ingestion/raw-ingestion.repository';
+import { UnitOfWork } from '../../domain/shared/unit-of-work';
 import { Workout } from '../../domain/workout/workout';
 import { WorkoutRepository } from '../../domain/workout/workout.repository';
 import { IngestHealthDataUseCase } from './ingest-health-data.use-case';
@@ -55,12 +56,14 @@ describe('IngestHealthDataUseCase', () => {
       },
       list: () => Promise.resolve([]),
     };
+    const unitOfWork: UnitOfWork = { run: (work) => work() };
 
     useCase = new IngestHealthDataUseCase(
       rawIngestionRepository,
       healthMetricRepository,
       workoutRepository,
       minimalHealthRecordRepository,
+      unitOfWork,
     );
   });
 

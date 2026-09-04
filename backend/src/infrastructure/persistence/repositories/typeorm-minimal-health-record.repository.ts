@@ -15,6 +15,7 @@ import { MedicationEntryOrmEntity } from '../entities/medication-entry.orm-entit
 import { MinimalHealthRecordOrmEntity } from '../entities/minimal-health-record.orm-entity';
 import { StateOfMindEntryOrmEntity } from '../entities/state-of-mind-entry.orm-entity';
 import { SymptomOrmEntity } from '../entities/symptom.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 // 4 columns per row; keeps every batch well under SQLite's parameter limit.
 const SAVE_CHUNK_SIZE = 200;
@@ -44,7 +45,9 @@ export class TypeOrmMinimalHealthRecordRepository extends MinimalHealthRecordRep
     if (records.length === 0) {
       return;
     }
-    const repository = this.dataSource.getRepository(ENTITY_BY_KIND[kind]);
+    const repository = currentManager(this.dataSource).getRepository(
+      ENTITY_BY_KIND[kind],
+    );
     const rows = records.map((record) => ({
       // Content-derived id: repeated ingestion of the same item upserts the
       // same row instead of accumulating duplicates - the closest we can get

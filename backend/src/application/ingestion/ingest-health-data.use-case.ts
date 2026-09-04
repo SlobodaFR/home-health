@@ -3,6 +3,7 @@ import { HealthMetricRepository } from '../../domain/health-metric/health-metric
 import { MINIMAL_HEALTH_RECORD_KINDS } from '../../domain/minimal-health-record/minimal-health-record';
 import { MinimalHealthRecordRepository } from '../../domain/minimal-health-record/minimal-health-record.repository';
 import { RawIngestionRepository } from '../../domain/raw-ingestion/raw-ingestion.repository';
+import { UnitOfWork } from '../../domain/shared/unit-of-work';
 import { WorkoutRepository } from '../../domain/workout/workout.repository';
 import { JsonObject } from './json-object';
 import { parseAutoExportMetrics } from './parse-auto-export-metrics';
@@ -32,6 +33,7 @@ export class IngestHealthDataUseCase {
     private readonly healthMetricRepository: HealthMetricRepository,
     private readonly workoutRepository: WorkoutRepository,
     private readonly minimalHealthRecordRepository: MinimalHealthRecordRepository,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
 
   async execute(
@@ -42,40 +44,47 @@ export class IngestHealthDataUseCase {
     const dataTypes = Object.keys(data).filter((key) =>
       Array.isArray(data[key]),
     );
-    for (const dataType of dataTypes) {
-      await this.rawIngestionRepository.save({
-        userId,
-        automationId,
-        automationName,
-        sessionId,
-        dataType,
-        payload: data[dataType],
-      });
-    }
 
-    if (Array.isArray(data.metrics)) {
-      const metrics = parseAutoExportMetrics(userId, data.metrics);
-      if (metrics.length > 0) {
-        await this.healthMetricRepository.upsertMany(metrics);
+    // One transaction for the whole batch: holds SQLite's write lock for a
+    // single short window instead of one window per repository call, which
+    // is what was colliding with Litestream's WAL checkpoints under
+    // concurrent ingest requests ("database is locked" in the sync logs).
+    await this.unitOfWork.run(async () => {
+      for (const dataType of dataTypes) {
+        await this.rawIngestionRepository.save({
+          userId,
+          automationId,
+          automationName,
+          sessionId,
+          dataType,
+          payload: data[dataType],
+        });
       }
-    }
 
-    if (Array.isArray(data.workouts)) {
-      const workouts = parseAutoExportWorkouts(userId, data.workouts);
-      if (workouts.length > 0) {
-        await this.workoutRepository.upsertMany(workouts);
-      }
-    }
-
-    for (const kind of MINIMAL_HEALTH_RECORD_KINDS) {
-      const rawItems = data[kind];
-      if (Array.isArray(rawItems)) {
-        const records = parseAutoExportMinimalRecords(userId, rawItems);
-        if (records.length > 0) {
-          await this.minimalHealthRecordRepository.upsertMany(kind, records);
+      if (Array.isArray(data.metrics)) {
+        const metrics = parseAutoExportMetrics(userId, data.metrics);
+        if (metrics.length > 0) {
+          await this.healthMetricRepository.upsertMany(metrics);
         }
       }
-    }
+
+      if (Array.isArray(data.workouts)) {
+        const workouts = parseAutoExportWorkouts(userId, data.workouts);
+        if (workouts.length > 0) {
+          await this.workoutRepository.upsertMany(workouts);
+        }
+      }
+
+      for (const kind of MINIMAL_HEALTH_RECORD_KINDS) {
+        const rawItems = data[kind];
+        if (Array.isArray(rawItems)) {
+          const records = parseAutoExportMinimalRecords(userId, rawItems);
+          if (records.length > 0) {
+            await this.minimalHealthRecordRepository.upsertMany(kind, records);
+          }
+        }
+      }
+    });
 
     return { dataTypes };
   }

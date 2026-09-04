@@ -1,17 +1,14 @@
 import { randomUUID } from 'crypto';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { RawIngestion } from '../../../domain/raw-ingestion/raw-ingestion';
 import { RawIngestionRepository } from '../../../domain/raw-ingestion/raw-ingestion.repository';
 import { RawIngestionOrmEntity } from '../entities/raw-ingestion.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 @Injectable()
 export class TypeOrmRawIngestionRepository extends RawIngestionRepository {
-  constructor(
-    @InjectRepository(RawIngestionOrmEntity)
-    private readonly repository: Repository<RawIngestionOrmEntity>,
-  ) {
+  constructor(private readonly dataSource: DataSource) {
     super();
   }
 
@@ -19,7 +16,11 @@ export class TypeOrmRawIngestionRepository extends RawIngestionRepository {
   /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
   async save(entry: RawIngestion): Promise<void> {
     const payload = entry.payload as any;
-    await this.repository.insert({ id: randomUUID(), ...entry, payload });
+    await currentManager(this.dataSource).insert(RawIngestionOrmEntity, {
+      id: randomUUID(),
+      ...entry,
+      payload,
+    });
   }
   /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 }

@@ -9,12 +9,14 @@ import { IngestHealthDataUseCase } from '../../../application/ingestion/ingest-h
 import { HealthMetricRepository } from '../../../domain/health-metric/health-metric.repository';
 import { MinimalHealthRecordRepository } from '../../../domain/minimal-health-record/minimal-health-record.repository';
 import { RawIngestionRepository } from '../../../domain/raw-ingestion/raw-ingestion.repository';
+import { UnitOfWork } from '../../../domain/shared/unit-of-work';
 import { WorkoutRepository } from '../../../domain/workout/workout.repository';
 import { ormEntities } from '../../../infrastructure/persistence/entities';
 import { TypeOrmHealthMetricRepository } from '../../../infrastructure/persistence/repositories/typeorm-health-metric.repository';
 import { TypeOrmMinimalHealthRecordRepository } from '../../../infrastructure/persistence/repositories/typeorm-minimal-health-record.repository';
 import { TypeOrmRawIngestionRepository } from '../../../infrastructure/persistence/repositories/typeorm-raw-ingestion.repository';
 import { TypeOrmWorkoutRepository } from '../../../infrastructure/persistence/repositories/typeorm-workout.repository';
+import { TypeOrmUnitOfWork } from '../../../infrastructure/persistence/typeorm-unit-of-work';
 import { HealthIngestionController } from '../controllers/health-ingestion.controller';
 import { HealthReadController } from '../controllers/health-read.controller';
 import { ApiKeyGuard } from '../guards/api-key.guard';
@@ -44,6 +46,7 @@ import { ApiKeysModule } from './api-keys.module';
       provide: MinimalHealthRecordRepository,
       useClass: TypeOrmMinimalHealthRecordRepository,
     },
+    { provide: UnitOfWork, useClass: TypeOrmUnitOfWork },
     IngestHealthDataUseCase,
     ListHealthMetricsUseCase,
     ListWorkoutsUseCase,

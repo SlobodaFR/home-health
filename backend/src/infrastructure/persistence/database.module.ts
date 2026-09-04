@@ -15,6 +15,11 @@ import { ormEntities } from './entities';
           'data/home-health.sqlite',
         ),
         enableWAL: true,
+        // Wait for Litestream's WAL checkpoints (and other writers) to
+        // release the lock instead of throwing "database is locked"
+        // immediately - see the retry loop this guards in the "sync error"
+        // logs from the Litestream sidecar.
+        timeout: 5000,
         entities: ormEntities,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*.js'],

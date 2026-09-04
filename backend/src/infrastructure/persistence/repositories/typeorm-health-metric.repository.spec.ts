@@ -27,9 +27,7 @@ describe('TypeOrmHealthMetricRepository', () => {
       synchronize: true,
     });
     await dataSource.initialize();
-    repository = new TypeOrmHealthMetricRepository(
-      dataSource.getRepository(HealthMetricOrmEntity),
-    );
+    repository = new TypeOrmHealthMetricRepository(dataSource);
 
     await repository.upsertMany([
       metric({ date: '2026-01-01', name: 'step_count' }),
