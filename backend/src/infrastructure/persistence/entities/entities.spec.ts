@@ -42,6 +42,8 @@ describe('ormEntities', () => {
       payload: { qty: 100 },
     };
     await repository.save(row);
-    await expect(repository.save({ ...row, id: '2' })).rejects.toThrow();
+    await expect(repository.save({ ...row, id: '2' })).rejects.toThrow(
+      /UNIQUE constraint failed/,
+    );
   });
 });
