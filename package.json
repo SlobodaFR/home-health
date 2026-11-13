@@ -21,7 +21,7 @@
     "prepare": "husky"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=26"
   },
   "overrides": {
     "typescript": "^5.9.3"
@@ -47,11 +47,11 @@
     "prettier": "^3.8.4"
   },
   "allowScripts": {
-    "better-sqlite3@13.0.3": true,
-    "@nestjs/core@10.4.22": true,
-    "@scarf/scarf@1.4.0": true,
-    "esbuild@0.21.5": true,
-    "fsevents@2.3.3": true,
-    "unrs-resolver@1.12.2": true
+    "better-sqlite3": true,
+    "esbuild": true,
+    "@nestjs/core": false,
+    "@scarf/scarf": false,
+    "fsevents": false,
+    "unrs-resolver": false
   }
 }
