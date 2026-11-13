@@ -41,7 +41,7 @@ export class TypeOrmHealthMetricRepository extends HealthMetricRepository {
       date: metric.date,
       source: metric.source,
       // `unknown` -> `any`: arbitrary JSON crossing into the payload column.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      // oxlint-disable-next-line typescript/no-unsafe-assignment
       payload: metric.payload as any,
     }));
     const manager = currentManager(this.dataSource);

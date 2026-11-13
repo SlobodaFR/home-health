@@ -13,7 +13,7 @@ export class TypeOrmRawIngestionRepository extends RawIngestionRepository {
   }
 
   // `unknown` -> `any`: arbitrary JSON crossing into the payload column.
-  /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
+  /* oxlint-disable typescript/no-unsafe-assignment */
   async save(entry: RawIngestion): Promise<void> {
     const payload = entry.payload as any;
     await currentManager(this.dataSource).insert(RawIngestionOrmEntity, {
@@ -22,5 +22,5 @@ export class TypeOrmRawIngestionRepository extends RawIngestionRepository {
       payload,
     });
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
+  /* oxlint-enable typescript/no-unsafe-assignment */
 }
