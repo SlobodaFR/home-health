@@ -13,7 +13,7 @@ function makeContext(apiKey: string | undefined): ExecutionContext {
 
 describe('ApiKeyGuard', () => {
   it('resolves the user and attaches apiKeyUserId when the key is active', async () => {
-    const execute = jest.fn().mockResolvedValue({ userId: 'user-1' });
+    const execute = vi.fn().mockResolvedValue({ userId: 'user-1' });
     const guard = new ApiKeyGuard({
       execute,
     } as unknown as ResolveUserFromApiKeyUseCase);
@@ -28,7 +28,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('throws 404 (not 401) for an unknown or revoked key', async () => {
-    const execute = jest.fn().mockResolvedValue(null);
+    const execute = vi.fn().mockResolvedValue(null);
     const guard = new ApiKeyGuard({
       execute,
     } as unknown as ResolveUserFromApiKeyUseCase);
@@ -39,7 +39,7 @@ describe('ApiKeyGuard', () => {
   });
 
   it('throws 404 when no apiKey path param is present', async () => {
-    const execute = jest.fn();
+    const execute = vi.fn();
     const guard = new ApiKeyGuard({
       execute,
     } as unknown as ResolveUserFromApiKeyUseCase);

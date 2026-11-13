@@ -1,6 +1,7 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
+import type { Mock } from 'vitest';
 import { AccessTokenPayload } from '../../../domain/auth/access-token-payload';
 import { AccessTokenVerifier } from '../../../domain/auth/access-token-verifier';
 import { OAuthClient, TokenPair } from '../../../domain/auth/oauth-client';
@@ -15,7 +16,7 @@ function makeContext(
   cookies: Record<string, string | undefined>,
 ): ExecutionContext {
   const request = { cookies, headers: {} };
-  const response = { cookie: jest.fn() };
+  const response = { cookie: vi.fn() };
   return {
     switchToHttp: () => ({
       getRequest: () => request,
@@ -39,30 +40,30 @@ describe('JwtAuthGuard', () => {
     expiresIn: 3600,
   };
 
-  let verify: jest.Mock;
-  let refresh: jest.Mock;
-  let getRevokedAt: jest.Mock;
+  let verify: Mock;
+  let refresh: Mock;
+  let getRevokedAt: Mock;
   let guard: JwtAuthGuard;
 
   beforeEach(() => {
-    verify = jest.fn();
+    verify = vi.fn();
     const verifier: AccessTokenVerifier = { verify };
 
-    refresh = jest.fn();
+    refresh = vi.fn();
     const oauthClient: OAuthClient = {
-      authorizeUrl: jest.fn(),
-      exchangeCode: jest.fn(),
+      authorizeUrl: vi.fn(),
+      exchangeCode: vi.fn(),
       refresh,
     };
 
-    getRevokedAt = jest.fn().mockResolvedValue(null);
+    getRevokedAt = vi.fn().mockResolvedValue(null);
     const revokedSessions: RevokedSessionRepository = {
-      markRevoked: jest.fn(),
+      markRevoked: vi.fn(),
       getRevokedAt,
     };
 
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride: vi.fn().mockReturnValue(false),
     } as unknown as Reflector;
     const config = new ConfigService({ NODE_ENV: 'test' });
     guard = new JwtAuthGuard(
