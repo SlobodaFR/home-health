@@ -94,7 +94,7 @@ describe('IngestHealthDataUseCase', () => {
       },
     });
 
-    expect(dataTypes.sort()).toEqual(['metrics', 'symptoms', 'workouts']);
+    expect(dataTypes.toSorted()).toEqual(['metrics', 'symptoms', 'workouts']);
     expect(rawIngestions).toHaveLength(3);
     expect(rawIngestions[0]).toMatchObject({
       userId: 'user-1',

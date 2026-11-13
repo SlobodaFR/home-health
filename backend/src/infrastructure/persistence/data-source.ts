@@ -9,5 +9,5 @@ export const AppDataSource = new DataSource({
   enableWAL: true,
   timeout: 5000,
   entities: ormEntities,
-  migrations: [__dirname + '/migrations/*.ts'],
+  migrations: [__dirname + '/migrations/*.js'],
 });
