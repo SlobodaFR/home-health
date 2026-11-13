@@ -71,7 +71,7 @@ Claude). Repris quasi à l'identique :
   `home-remote-mcps` (`JwtAuthGuard`, `OAuthClient`,
   `RevokedSessionRepository`).
 - `POST /api-keys` (protégé) → génère une clé aléatoire (`hh_<32 bytes
-base64url>`), retournée **une seule fois**. Seul le hash `scrypt` est
+  base64url>`), retournée **une seule fois**. Seul le hash `scrypt` est
   persisté.
 - `GET /api-keys` → liste des clés (label, createdAt, lastUsedAt, revokedAt),
   jamais la valeur en clair.
@@ -196,8 +196,8 @@ Validation stricte de l'enveloppe, permissive sur le détail :
 
 - `AutoExportPayloadDto { data: AutoExportDataDto }`
 - `AutoExportDataDto { metrics?: HealthMetricDto[]; workouts?: WorkoutV2Dto[];
-symptoms?: unknown[]; ecg?: unknown[]; heartRateNotifications?: unknown[];
-stateOfMind?: unknown[]; cycleTracking?: unknown[]; medications?: unknown[]; }`
+  symptoms?: unknown[]; ecg?: unknown[]; heartRateNotifications?: unknown[];
+  stateOfMind?: unknown[]; cycleTracking?: unknown[]; medications?: unknown[]; }`
 - `HealthMetricDto { name: string; units: string; data: MetricDataPointDto[] }`
 - `MetricDataPointDto` : `date`/`startDate`/`endDate`, `source?`, reste en
   champs libres (`qty`, `Min`/`Avg`/`Max`, `systolic`/`diastolic`, `value`,
