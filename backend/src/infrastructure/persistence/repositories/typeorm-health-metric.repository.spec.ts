@@ -60,7 +60,7 @@ describe('TypeOrmHealthMetricRepository', () => {
       from: '2026-01-01',
       to: '2026-01-02',
     });
-    expect(rows.map((r) => r.date).sort()).toEqual([
+    expect(rows.map((r) => r.date).toSorted()).toEqual([
       '2026-01-01',
       '2026-01-02',
     ]);
