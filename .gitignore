@@ -13,3 +13,4 @@ coverage
 **/reports
 **/.stryker-tmp
 backend/.env.dev
+*.tsbuildinfo
