@@ -19,7 +19,6 @@ Health Auto Export (iPhone)
    home-health  ──▶ SQLite (WAL) ──▶ Litestream ──▶ MinIO
         ▲
         │  GET /api/health/:apiKey/...
-        │  GET /openapi.json
 home-remote-mcps  ──▶ tools MCP  ──▶ LLM
 ```
 
@@ -186,7 +185,7 @@ POST   /api/api-keys        (Bearer JWT home-auth)
 GET    /api/api-keys        (Bearer JWT home-auth)
 DELETE /api/api-keys/:id    (Bearer JWT home-auth)
 
-GET    /openapi.json
+GET    /openapi.json   (hors production uniquement)
 GET    /health/status   (liveness, pas d'auth)
 ```
 
@@ -223,7 +222,8 @@ Idempotence : Auto Export peut envoyer plusieurs requêtes pour un même run
 - `@ApiOperation` / `@ApiResponse` détaillés : ce texte est vu par le LLM via
   home-remote-mcps pour choisir le bon tool — soigner descriptions et exemples.
 - Exposer le document brut en JSON sur `GET /openapi.json` (pas seulement
-  l'UI Swagger).
+  l'UI Swagger), hors production uniquement (comme `/docs`) : home-remote-mcps
+  appelle les routes REST directement, il ne lit pas ce document.
 
 ## 9. Déploiement
 
