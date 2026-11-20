@@ -29,6 +29,8 @@ import { StatusModule } from './interfaces/http/modules/status.module';
     HealthModule,
     StatusModule,
   ],
+  // Must stay in the root module: global guards run in module-scan order, so the rate limit
+  // applies before JwtAuthGuard (AuthModule).
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
