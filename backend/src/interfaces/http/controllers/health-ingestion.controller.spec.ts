@@ -8,6 +8,10 @@ import { HealthIngestionController } from './health-ingestion.controller';
 const SECRET = 's'.repeat(48);
 
 describe('HealthIngestionController logging', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('logs the user as a pseudonym only: no user id, no API key', async () => {
     const lines: string[] = [];
     vi.spyOn(Logger.prototype, 'log').mockImplementation((message: unknown) => {
@@ -32,6 +36,5 @@ describe('HealthIngestionController logging', () => {
     const output = lines.join('\n');
     expect(output).toContain(pseudonymize('user-id-1234', SECRET));
     expect(output).not.toContain('user-id-1234');
-    vi.restoreAllMocks();
   });
 });
