@@ -23,10 +23,13 @@ async function bootstrap(): Promise<void> {
   app.useLogger(app.get(Logger));
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,
-  // unversioned path) and openapi.json (mounted directly by SwaggerModule,
+  // unversioned path), /healthz (internal, blocked by Caddy) and openapi.json (mounted directly by SwaggerModule,
   // outside production only, unaffected by this prefix either way).
   app.setGlobalPrefix('api', {
-    exclude: [{ path: 'health/status', method: RequestMethod.GET }],
+    exclude: [
+      { path: 'health/status', method: RequestMethod.GET },
+      { path: 'healthz', method: RequestMethod.GET },
+    ],
   });
   // Number of reverse-proxy hops to trust for X-Forwarded-For (req.ip feeds the rate limit).
   // Production: 1 (Caddy, which drops client-sent X-Forwarded-For since no trusted_proxies is
