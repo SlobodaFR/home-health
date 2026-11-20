@@ -1,9 +1,9 @@
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
 import { AppModule } from './app.module';
+import { setupSwagger } from './interfaces/http/swagger';
 
 // Auto Export payloads can carry GPS routes for long workouts - the default
 // body-parser limit (100kb) is far too small. Configurable so a real device
@@ -16,8 +16,8 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,
-  // unversioned path) and openapi.json (mounted directly by SwaggerModule
-  // below, unaffected by this prefix either way).
+  // unversioned path) and openapi.json (mounted directly by SwaggerModule,
+  // outside production only, unaffected by this prefix either way).
   app.setGlobalPrefix('api', {
     exclude: [{ path: 'health/status', method: RequestMethod.GET }],
   });
@@ -29,19 +29,7 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('home-health')
-    .setDescription(
-      'Ingestion et exposition des donnees Apple Health (Health Auto Export) pour home-remote-mcps',
-    )
-    .setVersion('1.0')
-    .addBearerAuth()
-    .addServer(process.env.PUBLIC_BASE_URL ?? 'http://localhost:3000')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document, {
-    jsonDocumentUrl: '/openapi.json',
-  });
+  setupSwagger(app, process.env.NODE_ENV, process.env.PUBLIC_BASE_URL);
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
