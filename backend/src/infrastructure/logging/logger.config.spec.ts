@@ -42,6 +42,21 @@ describe('logger configuration', () => {
     }
   });
 
+  it('masks the API key whatever the casing or slashes (Express routing is lenient)', () => {
+    for (const url of [
+      '/API/HEALTH/hk_SECRET',
+      '/API/health/hk_SECRET/WORKOUTS',
+      '/api/health//hk_SECRET',
+      '//api/health/hk_SECRET',
+      '/api/health/status/hk_SECRET',
+    ]) {
+      const serialized = JSON.stringify(
+        serializers().req({ method: 'GET', url, headers: {} }),
+      );
+      expect(serialized).not.toContain('hk_SECRET');
+    }
+  });
+
   it('keeps the status route readable', () => {
     expect(maskApiKey('/api/health/status')).toBe('/api/health/status');
     expect(maskApiKey('/health/status')).toBe('/health/status');

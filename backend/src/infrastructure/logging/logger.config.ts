@@ -18,7 +18,7 @@ export const REDACT_PATHS = [
   '*.access_token',
 ];
 
-const QUIET_PATHS = [/^\/assets\//, /^(\/api)?\/health\/status\/?$/];
+const QUIET_PATHS = [/^\/assets\//i, /^(\/api)?\/health\/status\/?$/i];
 
 function pathOf(url: string | undefined): string {
   return (url ?? '').split('?')[0];
@@ -29,10 +29,12 @@ function pathOf(url: string | undefined): string {
  * (/api/health/:apiKey/...): it is a credential, never log it.
  */
 export function maskApiKey(path: string): string {
-  return path.replace(
-    /^((?:\/api)?\/health\/)(?!status(?:\/|$))[^/]+/,
-    '$1:apiKey',
-  );
+  // Express routing ignores case and repeated slashes: match the same way, anywhere in the path.
+  const normalized = path.replace(/\/{2,}/g, '/');
+  if (/^(\/api)?\/health\/status\/?$/i.test(normalized)) {
+    return normalized;
+  }
+  return normalized.replace(/(\/health\/)[^/]+/i, '$1:apiKey');
 }
 
 export function loggerParams(nodeEnv: string | undefined): Params {
