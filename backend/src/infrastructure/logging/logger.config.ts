@@ -18,7 +18,11 @@ export const REDACT_PATHS = [
   '*.access_token',
 ];
 
-const QUIET_PATHS = [/^\/assets\//i, /^(\/api)?\/health\/status\/?$/i];
+const QUIET_PATHS = [
+  /^\/assets\//i,
+  /^(\/api)?\/health\/status\/?$/i,
+  /^\/healthz\/?$/i,
+];
 
 function pathOf(url: string | undefined): string {
   return (url ?? '').split('?')[0];

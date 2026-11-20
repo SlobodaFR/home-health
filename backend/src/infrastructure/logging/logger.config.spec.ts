@@ -178,6 +178,7 @@ describe('logger configuration', () => {
     expect(ignore({ url: '/assets/index-abc.js' })).toBe(true);
     expect(ignore({ url: '/health/status' })).toBe(true);
     expect(ignore({ url: '/api/health/status' })).toBe(true);
+    expect(ignore({ url: '/healthz' })).toBe(true);
     expect(ignore({ url: '/api/health/hk_key' })).toBe(false);
   });
 
