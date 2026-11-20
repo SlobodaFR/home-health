@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { applySecurityHeaders } from './interfaces/http/security-headers';
 import { setupSwagger } from './interfaces/http/swagger';
@@ -17,7 +18,9 @@ const MAX_PAYLOAD_SIZE = process.env.MAX_PAYLOAD_SIZE
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
+    bufferLogs: true,
   });
+  app.useLogger(app.get(Logger));
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,
   // unversioned path) and openapi.json (mounted directly by SwaggerModule,
