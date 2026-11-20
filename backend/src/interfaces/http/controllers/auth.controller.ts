@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -18,6 +19,7 @@ import {
   CurrentUserPayload,
 } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
+import { SameOriginGuard } from '../guards/same-origin.guard';
 import { SessionRevokedDto } from '../dto/session-revoked.dto';
 
 @Controller('auth')
@@ -49,6 +51,7 @@ export class AuthController {
   }
 
   @Public()
+  @UseGuards(SameOriginGuard)
   @Post('logout')
   @HttpCode(204)
   logout(@Res({ passthrough: true }) res: Response): void {

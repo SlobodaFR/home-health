@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -23,12 +24,15 @@ import {
   CurrentUser,
   CurrentUserPayload,
 } from '../decorators/current-user.decorator';
+import { SameOriginGuard } from '../guards/same-origin.guard';
 import { CreateApiKeyDto } from '../dto/create-api-key.dto';
 import { ApiKeyDto, toApiKeyDto } from '../presenters/api-key.presenter';
 import { CreateApiKeyResponseDto } from '../presenters/create-api-key-response.dto';
 
 @ApiTags('api-keys')
 @ApiBearerAuth()
+// Cookie-authenticated mutations (POST, DELETE): same-origin only (CSRF).
+@UseGuards(SameOriginGuard)
 @Controller('api-keys')
 export class ApiKeysController {
   constructor(
