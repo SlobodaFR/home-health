@@ -44,6 +44,12 @@ export function validateEnv(
       throw new Error('PORT must be an integer between 1 and 65535');
     }
   }
+  if (env.TRUST_PROXY_HOPS !== undefined && env.TRUST_PROXY_HOPS !== '') {
+    const hops = Number(env.TRUST_PROXY_HOPS);
+    if (!Number.isInteger(hops) || hops < 0 || hops > 10) {
+      throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 10');
+    }
+  }
 
   if (production) {
     for (const variable of HTTPS_IN_PRODUCTION) {

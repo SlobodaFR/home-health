@@ -64,6 +64,15 @@ describe('validateEnv', () => {
     expect(validateEnv(dev)).toEqual(dev);
   });
 
+  it('rejects an invalid TRUST_PROXY_HOPS', () => {
+    for (const value of ['abc', '-1', '1.5', '99']) {
+      expect(() => validateEnv({ ...valid, TRUST_PROXY_HOPS: value })).toThrow(
+        'TRUST_PROXY_HOPS',
+      );
+    }
+    expect(validateEnv({ ...valid, TRUST_PROXY_HOPS: '1' })).toBeDefined();
+  });
+
   it('rejects an invalid MAX_PAYLOAD_SIZE or PORT', () => {
     expect(() => validateEnv({ ...valid, MAX_PAYLOAD_SIZE: 'abc' })).toThrow(
       'MAX_PAYLOAD_SIZE',
