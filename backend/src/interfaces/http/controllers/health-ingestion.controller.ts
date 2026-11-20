@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Headers,
+  Logger,
   Post,
   Req,
   UseGuards,
@@ -13,9 +14,11 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { IngestHealthDataUseCase } from '../../../application/ingestion/ingest-health-data.use-case';
+import { pseudonymize } from '../../../domain/shared/pseudonymize';
 import { isJsonObject } from '../../../application/ingestion/json-object';
 import { ApiKeyUser } from '../decorators/api-key-user.decorator';
 import { Public } from '../decorators/public.decorator';
@@ -29,7 +32,12 @@ import { IngestResponseDto } from '../presenters/ingest-response.dto';
 @UseGuards(ApiKeyGuard)
 @Controller('health')
 export class HealthIngestionController {
-  constructor(private readonly ingestHealthData: IngestHealthDataUseCase) {}
+  private readonly logger = new Logger(HealthIngestionController.name);
+
+  constructor(
+    private readonly ingestHealthData: IngestHealthDataUseCase,
+    private readonly config: ConfigService,
+  ) {}
 
   // Device pushes: larger budget than interactive routes (see throttling.ts).
   @Throttle(ingestionThrottle)
@@ -71,6 +79,15 @@ export class HealthIngestionController {
       sessionId: sessionId ?? null,
       data,
     });
+
+    // The user is only ever logged as a pseudonym (never the id, never the API key).
+    const user = pseudonymize(
+      userId,
+      this.config.getOrThrow('PSEUDONYM_SECRET'),
+    );
+    this.logger.log(
+      `Ingested ${dataTypes.length.toString()} data type(s) for user ${user}`,
+    );
 
     return { received: dataTypes };
   }
