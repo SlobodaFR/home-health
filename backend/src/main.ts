@@ -24,10 +24,10 @@ async function bootstrap(): Promise<void> {
   app.use(json({ limit: MAX_PAYLOAD_SIZE }));
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(cookieParser());
-  app.enableCors({
-    origin: process.env.FRONTEND_URL ?? true,
-    credentials: true,
-  });
+  // No CORS: the SPA is served by this service (same origin; the Vite dev
+  // server proxies /api), and device/server callers (Health Auto Export,
+  // home-remote-mcps) are not browsers. Never open CORS with a fallback to
+  // any origin: responses carry the session cookie.
 
   setupSwagger(app, process.env.NODE_ENV, process.env.PUBLIC_BASE_URL);
 
