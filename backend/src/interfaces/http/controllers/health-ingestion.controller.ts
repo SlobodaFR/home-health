@@ -13,6 +13,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { IngestHealthDataUseCase } from '../../../application/ingestion/ingest-health-data.use-case';
 import { isJsonObject } from '../../../application/ingestion/json-object';
@@ -20,6 +21,7 @@ import { ApiKeyUser } from '../decorators/api-key-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { AutoExportPayloadDto } from '../dto/ingest-health-data.dto';
 import { ApiKeyGuard } from '../guards/api-key.guard';
+import { ingestionThrottle } from '../throttling';
 import { IngestResponseDto } from '../presenters/ingest-response.dto';
 
 @ApiTags('ingestion')
@@ -29,6 +31,8 @@ import { IngestResponseDto } from '../presenters/ingest-response.dto';
 export class HealthIngestionController {
   constructor(private readonly ingestHealthData: IngestHealthDataUseCase) {}
 
+  // Device pushes: larger budget than interactive routes (see throttling.ts).
+  @Throttle(ingestionThrottle)
   @Post(':apiKey')
   @ApiParam({
     name: 'apiKey',
