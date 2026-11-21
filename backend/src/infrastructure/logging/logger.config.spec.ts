@@ -137,12 +137,9 @@ describe('logger configuration', () => {
     expect(output).not.toContain('INSERT INTO');
     expect(output).toContain('QueryFailedError');
     expect(output).toContain('SQLITE_BUSY');
-    expect(Object.keys(JSON.parse(output).err).sort()).toEqual([
-      'code',
-      'message',
-      'stack',
-      'type',
-    ]);
+    expect(
+      Object.keys((JSON.parse(output) as { err: object }).err).sort(),
+    ).toEqual(['code', 'message', 'stack', 'type']);
   });
 
   it('prefers originalUrl so the path is masked even behind a mounted router', () => {
