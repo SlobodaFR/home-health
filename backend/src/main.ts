@@ -21,6 +21,8 @@ async function bootstrap(): Promise<void> {
     bufferLogs: true,
   });
   app.useLogger(app.get(Logger));
+  // Lets providers clean up on SIGTERM (runtime health monitor timer).
+  app.enableShutdownHooks();
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,
   // unversioned path), /healthz (internal, blocked by Caddy) and openapi.json (mounted directly by SwaggerModule,
