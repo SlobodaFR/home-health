@@ -47,7 +47,10 @@ export function maskApiKey(path: string): string {
  * standard serializer copies every enumerable property: a TypeORM QueryFailedError would carry
  * `query`, `parameters` (names, emails, health values) and `driverError` into the logs.
  */
-export function serializeError(value: unknown): Record<string, unknown> {
+export function serializeError(input: unknown): Record<string, unknown> {
+  // pino-http hands custom serializers an error already serialized by pino-std-serializers;
+  // the original Error is in `.raw`.
+  const value = (input as { raw?: unknown } | null | undefined)?.raw ?? input;
   if (!(value instanceof Error)) {
     return { type: typeof value };
   }
