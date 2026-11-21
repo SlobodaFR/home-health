@@ -49,6 +49,7 @@ describe('logger configuration', () => {
       '/api/health//hk_SECRET',
       '//api/health/hk_SECRET',
       '/api/health/status/hk_SECRET',
+      '/api/health/hk_SECRET/health/status/x',
     ]) {
       const serialized = JSON.stringify(
         serializers().req({ method: 'GET', url, headers: {} }),

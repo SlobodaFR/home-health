@@ -35,7 +35,7 @@ export function maskApiKey(path: string): string {
     return normalized;
   }
   // Unknown sub-path of the status route (a mistyped URL): drop whatever follows.
-  const status = normalized.match(/^(.*\/health\/status\/)(.+)$/i);
+  const status = normalized.match(/^((?:\/api)?\/health\/status\/)(.+)$/i);
   if (status) {
     return `${status[1]}:rest`;
   }
