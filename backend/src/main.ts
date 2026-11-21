@@ -1,8 +1,10 @@
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { json } from 'express';
 import { AppModule } from './app.module';
+import { applySecurityHeaders } from './interfaces/http/security-headers';
 import { setupSwagger } from './interfaces/http/swagger';
 
 // Auto Export payloads can carry GPS routes for long workouts - the default
@@ -13,7 +15,9 @@ const MAX_PAYLOAD_SIZE = process.env.MAX_PAYLOAD_SIZE
   : 50 * 1024 * 1024;
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false,
+  });
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,
   // unversioned path) and openapi.json (mounted directly by SwaggerModule,
@@ -21,6 +25,8 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api', {
     exclude: [{ path: 'health/status', method: RequestMethod.GET }],
   });
+  // First middleware: every response (API, SPA files, /docs outside prod) gets the security headers.
+  applySecurityHeaders(app);
   app.use(json({ limit: MAX_PAYLOAD_SIZE }));
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(cookieParser());
