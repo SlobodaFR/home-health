@@ -95,7 +95,7 @@ describe('request logging through Nest and pino-http', () => {
     }
   });
 
-  it('whitelists a real QueryFailedError logged with { err } through the pino-http wrapper', () => {
+  it('whitelists a real QueryFailedError logged with { err } outside a request', () => {
     lines.length = 0;
 
     app.get(Logger).error({ err: queryFailedError() }, 'db failed');
