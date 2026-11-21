@@ -1,5 +1,6 @@
 import { Writable } from 'stream';
 import pino from 'pino';
+import { QueryFailedError } from 'typeorm';
 import { loggerParams, maskApiKey, REDACT_PATHS } from './logger.config';
 
 type Serializer = (value: unknown) => unknown;
@@ -8,8 +9,12 @@ function options(nodeEnv = 'production'): Record<string, unknown> {
   return loggerParams(nodeEnv).pinoHttp as Record<string, unknown>;
 }
 
-function serializers(): { req: Serializer; res: Serializer } {
-  return options().serializers as { req: Serializer; res: Serializer };
+function serializers(): { req: Serializer; res: Serializer; err: Serializer } {
+  return options().serializers as {
+    req: Serializer;
+    res: Serializer;
+    err: Serializer;
+  };
 }
 
 describe('logger configuration', () => {
@@ -98,6 +103,61 @@ describe('logger configuration', () => {
     expect(output).not.toContain('a@b.c');
     expect(output).not.toContain('t0k3n');
     expect(output).toContain('SQLITE_BUSY');
+  });
+
+  it('logs errors as type, message, stack and code only: no query parameters or driver error', () => {
+    const lines: string[] = [];
+    const stream = new Writable({
+      write(chunk: Buffer, _encoding, callback) {
+        lines.push(chunk.toString());
+        callback();
+      },
+    });
+    const driverError = Object.assign(
+      new Error('SQLITE_BUSY: database is locked'),
+      {
+        code: 'SQLITE_BUSY',
+      },
+    );
+    const error = new QueryFailedError(
+      'INSERT INTO workout (name, notes) VALUES (?, ?)',
+      ['Alice Martin', 'alice@example.com'],
+      driverError,
+    );
+    const logger = pino(
+      { redact: REDACT_PATHS, serializers: { err: serializers().err } },
+      stream,
+    );
+
+    logger.error({ err: error }, 'request failed');
+
+    const output = lines.join('');
+    expect(output).not.toContain('alice@example.com');
+    expect(output).not.toContain('Alice Martin');
+    expect(output).not.toContain('INSERT INTO');
+    expect(output).toContain('QueryFailedError');
+    expect(output).toContain('SQLITE_BUSY');
+    expect(Object.keys(JSON.parse(output).err).sort()).toEqual([
+      'code',
+      'message',
+      'stack',
+      'type',
+    ]);
+  });
+
+  it('prefers originalUrl so the path is masked even behind a mounted router', () => {
+    const serialized = serializers().req({
+      method: 'GET',
+      url: '/hk_SECRET/workouts',
+      originalUrl: '/api/health/hk_SECRET/workouts?from=x',
+      headers: {},
+    });
+
+    expect(JSON.stringify(serialized)).not.toContain('hk_SECRET');
+    expect(serialized).toEqual({
+      method: 'GET',
+      url: '/api/health/:apiKey/workouts',
+    });
   });
 
   it('logs client errors as warn and server errors as error', () => {

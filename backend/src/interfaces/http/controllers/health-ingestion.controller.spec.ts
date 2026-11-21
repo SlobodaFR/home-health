@@ -6,6 +6,7 @@ import { pseudonymize } from '../../../domain/shared/pseudonymize';
 import { HealthIngestionController } from './health-ingestion.controller';
 
 const SECRET = 's'.repeat(48);
+const API_KEY = 'hk_0123456789abcdef0123456789abcdef';
 
 describe('HealthIngestionController logging', () => {
   afterEach(() => {
@@ -29,12 +30,19 @@ describe('HealthIngestionController logging', () => {
     const response = await controller.ingest(
       'user-id-1234',
       {} as never,
-      { body: { data: {} } } as Request,
+      {
+        body: { data: {} },
+        params: { apiKey: API_KEY },
+        originalUrl: `/api/health/${API_KEY}`,
+      } as unknown as Request,
     );
 
     expect(response).toEqual({ received: ['metrics'] });
     const output = lines.join('\n');
     expect(output).toContain(pseudonymize('user-id-1234', SECRET));
     expect(output).not.toContain('user-id-1234');
+    // The request carries the key (params, URL): none of it may reach the log line.
+    expect(output).not.toContain(API_KEY);
+    expect(output.length).toBeGreaterThan(0);
   });
 });

@@ -42,6 +42,24 @@ export function maskApiKey(path: string): string {
   return normalized.replace(/(\/health\/)[^/]+/i, '$1:apiKey');
 }
 
+/**
+ * Whitelist serializer for errors. Nest logs every non-HTTP exception as `{ err }`, and pino's
+ * standard serializer copies every enumerable property: a TypeORM QueryFailedError would carry
+ * `query`, `parameters` (names, emails, health values) and `driverError` into the logs.
+ */
+export function serializeError(value: unknown): Record<string, unknown> {
+  if (!(value instanceof Error)) {
+    return { type: typeof value };
+  }
+  const code = (value as { code?: unknown }).code;
+  return {
+    type: value.constructor.name,
+    message: value.message,
+    stack: value.stack,
+    ...(typeof code === 'string' || typeof code === 'number' ? { code } : {}),
+  };
+}
+
 export function loggerParams(nodeEnv: string | undefined): Params {
   return {
     pinoHttp: {
@@ -52,8 +70,12 @@ export function loggerParams(nodeEnv: string | undefined): Params {
         // no API key from the path.
         req: (req: IncomingMessage) => ({
           method: req.method,
-          url: maskApiKey(pathOf(req.url)),
+          // originalUrl: req.url is rewritten inside mounted routers.
+          url: maskApiKey(
+            pathOf((req as { originalUrl?: string }).originalUrl ?? req.url),
+          ),
         }),
+        err: serializeError,
         // No headers: Location carries authorization codes, Set-Cookie the session token.
         res: (res: ServerResponse) => ({ statusCode: res.statusCode }),
       },
