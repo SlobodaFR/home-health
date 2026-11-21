@@ -12,6 +12,7 @@ import { throttlerOptions } from './interfaces/http/throttling';
 import { ApiKeysModule } from './interfaces/http/modules/api-keys.module';
 import { AuthModule } from './interfaces/http/modules/auth.module';
 import { HealthModule } from './interfaces/http/modules/health.module';
+import { RuntimeHealthModule } from './interfaces/http/modules/runtime-health.module';
 import { StatusModule } from './interfaces/http/modules/status.module';
 
 @Module({
@@ -25,12 +26,13 @@ import { StatusModule } from './interfaces/http/modules/status.module';
       // Backend routes (everything under /api/**, plus health/status and
       // openapi.json which stay unprefixed - see main.ts) are excluded from
       // the SPA fallback so the frontend can be served at the root path.
-      exclude: ['/api*', '/health/status', '/openapi.json'],
+      exclude: ['/api*', '/health/status', '/healthz*', '/openapi.json'],
     }),
     AuthModule,
     ApiKeysModule,
     HealthModule,
     StatusModule,
+    RuntimeHealthModule,
   ],
   // Must stay in the root module: global guards run in module-scan order, so the rate limit
   // applies before JwtAuthGuard (AuthModule).
