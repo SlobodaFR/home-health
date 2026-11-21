@@ -1,4 +1,4 @@
-import { validateEnv } from './validate-env';
+import { DEV_PSEUDONYM_SECRET, validateEnv } from './validate-env';
 
 const valid: Record<string, string> = {
   NODE_ENV: 'production',
@@ -6,6 +6,7 @@ const valid: Record<string, string> = {
   AUTH_CLIENT_ID: 'home-health',
   AUTH_CLIENT_SECRET: 'client-secret-value',
   AUTH_WEBHOOK_SECRET: 'webhook-secret-value',
+  PSEUDONYM_SECRET: 'p'.repeat(48),
   FRONTEND_URL: 'https://health.example.test',
   PUBLIC_BASE_URL: 'https://health.example.test',
 };
@@ -62,6 +63,27 @@ describe('validateEnv', () => {
       AUTH_WEBHOOK_SECRET: 'change-me',
     };
     expect(validateEnv(dev)).toEqual(dev);
+  });
+
+  it('requires a random PSEUDONYM_SECRET of at least 32 bytes in production', () => {
+    const { PSEUDONYM_SECRET: _removed, ...rest } = valid;
+    expect(() => validateEnv(rest)).toThrow('PSEUDONYM_SECRET');
+    expect(() => validateEnv({ ...valid, PSEUDONYM_SECRET: 'short' })).toThrow(
+      'PSEUDONYM_SECRET',
+    );
+    expect(() =>
+      validateEnv({ ...valid, PSEUDONYM_SECRET: DEV_PSEUDONYM_SECRET }),
+    ).toThrow('PSEUDONYM_SECRET');
+  });
+
+  it('falls back to a dev-only PSEUDONYM_SECRET outside production', () => {
+    const { PSEUDONYM_SECRET: _removed, ...rest } = valid;
+    expect(
+      validateEnv({ ...rest, NODE_ENV: 'development' }).PSEUDONYM_SECRET,
+    ).toBe(DEV_PSEUDONYM_SECRET);
+    expect(
+      validateEnv({ ...valid, NODE_ENV: 'development' }).PSEUDONYM_SECRET,
+    ).toBe(valid.PSEUDONYM_SECRET);
   });
 
   it('rejects an invalid TRUST_PROXY_HOPS', () => {

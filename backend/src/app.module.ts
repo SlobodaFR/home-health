@@ -2,8 +2,10 @@ import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { LoggerModule } from 'nestjs-pino';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { loggerParams } from './infrastructure/logging/logger.config';
 import { validateEnv } from './infrastructure/config/validate-env';
 import { DatabaseModule } from './infrastructure/persistence/database.module';
 import { throttlerOptions } from './interfaces/http/throttling';
@@ -15,6 +17,7 @@ import { StatusModule } from './interfaces/http/modules/status.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
+    LoggerModule.forRoot(loggerParams(process.env.NODE_ENV)),
     ThrottlerModule.forRoot(throttlerOptions),
     DatabaseModule,
     ServeStaticModule.forRoot({
