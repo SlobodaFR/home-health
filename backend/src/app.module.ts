@@ -7,6 +7,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { loggerParams } from './infrastructure/logging/logger.config';
 import { validateEnv } from './infrastructure/config/validate-env';
+import { FeatureFlagsModule } from './infrastructure/feature-flags/feature-flags.module';
 import { DatabaseModule } from './infrastructure/persistence/database.module';
 import { throttlerOptions } from './interfaces/http/throttling';
 import { ApiKeysModule } from './interfaces/http/modules/api-keys.module';
@@ -21,6 +22,7 @@ import { StatusModule } from './interfaces/http/modules/status.module';
     LoggerModule.forRoot(loggerParams(process.env.NODE_ENV)),
     ThrottlerModule.forRoot(throttlerOptions),
     DatabaseModule,
+    FeatureFlagsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, 'public'),
       // Backend routes (everything under /api/**, plus health/status and
