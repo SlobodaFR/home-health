@@ -107,4 +107,48 @@ describe('validateEnv', () => {
       validateEnv({ ...valid, MAX_PAYLOAD_SIZE: '52428800', PORT: '3000' }),
     ).toBeDefined();
   });
+
+  describe('AUTH_WEBHOOK_SIGNING_SECRET (optional, 64 hex)', () => {
+    const hex = '0123456789abcdef'.repeat(4);
+
+    it('may be absent or empty: only the legacy webhook secret applies', () => {
+      expect(() => validateEnv(valid)).not.toThrow();
+      expect(() =>
+        validateEnv({ ...valid, AUTH_WEBHOOK_SIGNING_SECRET: '' }),
+      ).not.toThrow();
+    });
+
+    it('accepts 64 lowercase hexadecimal characters', () => {
+      expect(() =>
+        validateEnv({ ...valid, AUTH_WEBHOOK_SIGNING_SECRET: hex }),
+      ).not.toThrow();
+      expect(() =>
+        validateEnv({
+          ...valid,
+          NODE_ENV: 'development',
+          AUTH_WEBHOOK_SIGNING_SECRET: hex,
+        }),
+      ).not.toThrow();
+    });
+
+    it.each([
+      'change-me',
+      hex.slice(1),
+      `${hex}0`,
+      `${hex.slice(1)}z`,
+      hex.toUpperCase(),
+      ' ',
+    ])('refuses %j (any environment)', (value) => {
+      expect(() =>
+        validateEnv({ ...valid, AUTH_WEBHOOK_SIGNING_SECRET: value }),
+      ).toThrow('AUTH_WEBHOOK_SIGNING_SECRET');
+      expect(() =>
+        validateEnv({
+          ...valid,
+          NODE_ENV: 'development',
+          AUTH_WEBHOOK_SIGNING_SECRET: value,
+        }),
+      ).toThrow('AUTH_WEBHOOK_SIGNING_SECRET');
+    });
+  });
 });
