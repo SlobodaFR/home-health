@@ -131,6 +131,15 @@ describe('verifyWebhookSignature', () => {
     expect(check({}, body, NOW - 121_000)).toBe('window');
   });
 
+  it('checks the format before the window: stale and malformed is format', () => {
+    const stale = String(1_700_000_000 - 500);
+    expect(check({ timestamp: stale, header: 'v1=zz' })).toBe('format');
+    expect(check({ timestamp: stale, header: `sha256=${SIG_1_S1}` })).toBe(
+      'format',
+    );
+    expect(check({ timestamp: stale, id: 'not-a-uuid' })).toBe('format');
+  });
+
   it.each([
     ['missing header', { header: undefined }],
     ['missing id', { id: undefined }],

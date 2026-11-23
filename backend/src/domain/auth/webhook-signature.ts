@@ -44,7 +44,7 @@ export interface WebhookSignatureInput {
 export type WebhookSignatureOutcome = 'valid' | 'format' | 'window' | 'hmac';
 
 /**
- * Checks format, freshness (|floor(now) - timestamp| <= 120 s) and every `v1=` entry (hex decoded to
+ * Checks format (before anything else, so a stale and malformed request is `format`), freshness (|floor(now) - timestamp| <= 120 s) and every `v1=` entry (hex decoded to
  * 32 bytes, then timingSafeEqual): valid as soon as one entry matches. Replay detection is the
  * caller's (WebhookReplayCache), once the signature is authentic. The outcome tells why a
  * request was refused (format, window, hmac), for logs: never log the values themselves. Never throws.
@@ -65,14 +65,14 @@ export function verifyWebhookSignature(
   ) {
     return 'format';
   }
+  const received = parseV1Entries(header);
+  if (!received) {
+    return 'format';
+  }
   if (
     Math.abs(Math.floor(nowMs / 1000) - Number(timestamp)) > MAX_SKEW_SECONDS
   ) {
     return 'window';
-  }
-  const received = parseV1Entries(header);
-  if (!received) {
-    return 'format';
   }
   const expected = createHmac('sha256', secret)
     .update(`${id}.${timestamp}.`)
