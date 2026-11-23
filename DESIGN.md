@@ -78,6 +78,11 @@ Claude). Repris quasi à l'identique :
   physique — cohérent avec `raw_ingestions` qui référence `userId` et pas
   `apiKeyId` (l'historique d'ingestion survit à la révocation d'une clé).
 
+Vérification des access tokens (flag `auth-verify-token-claims`, contrat home-auth PC3) : la signature
+(JWKS) et l'expiration sont toujours vérifiées. Flag actif, le token doit en plus porter
+`aud = AUTH_CLIENT_ID`, `iss = origine de AUTH_SERVICE_URL` et être signé en RS256. Défaut du code :
+`false` (comportement historique) ; pin d'urgence `FEATURES_PIN_AUTH_VERIFY_TOKEN_CLAIMS=true|false`.
+
 ### 4.2 Auth des endpoints `/api/health/:apiKey/*` (machine-to-machine)
 
 - Pas de JWT ici : l'`apiKey` dans le path fait office de secret partagé.
