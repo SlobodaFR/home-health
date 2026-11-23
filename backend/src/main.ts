@@ -21,7 +21,7 @@ async function bootstrap(): Promise<void> {
     bufferLogs: true,
   });
   app.useLogger(app.get(Logger));
-  // Lets providers clean up on SIGTERM (runtime health monitor timer).
+  // Lets providers clean up on SIGTERM (runtime health monitor timer, PostHog queue flush).
   app.enableShutdownHooks();
   // Consistent with the rest of the home-* apps: everything lives under
   // /api/**, except health/status (liveness probes expect a stable,

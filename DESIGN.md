@@ -290,7 +290,23 @@ MAX_PAYLOAD_SIZE=
 
 FEATURES_OFREP_URL=https://features.sloboda.fr/api
 FEATURES_API_KEY=
+
+POSTHOG_API_KEY=
+POSTHOG_HOST=
 ```
+
+### Télémétrie opérationnelle (PostHog)
+
+Convention harnais `ops-telemetry` : deux événements anonymes vers PostHog, `runtime_health` (toutes les
+60 s : `lag_p50_ms`, `lag_p99_ms`, `lag_max_ms`, `elu`, `rss_mb`, `heap_used_mb`) et `http_request` (une
+fois par requête traitée par une route Nest : `method`, `route`, `status`, `duration_ms`), avec
+`service: 'home-health'`. `route` est le **template** de la route (`/api/health/:apiKey/metrics`), jamais
+l'URL : la clé API Health Auto Export, qui est un paramètre de chemin, ne sort jamais. Ni utilisateur, ni
+IP, ni en-tête, ni corps ; `distinctId` aléatoire sans profil de personne. Exclus de `http_request` :
+`/healthz` (sondé par Docker) et `/health/status` (sonde de liveness) ; les assets et le SPA, servis hors
+route Nest, ne sont jamais interceptés. `POSTHOG_API_KEY` (1Password `POSTHOG_API_KEY`, champ partagé,
+transmis par `deploy-vps.yml`) absente : adaptateur NOOP, aucun appel réseau. `POSTHOG_HOST` : défaut
+`https://eu.i.posthog.com`. La file est vidée à l'arrêt (`shutdown(5000)`, sous les 10 s de Docker).
 
 ### Feature flags (home-features)
 
