@@ -83,6 +83,37 @@ Vérification des access tokens (flag `auth-verify-token-claims`, contrat home-a
 `aud = AUTH_CLIENT_ID`, `iss = origine de AUTH_SERVICE_URL` et être signé en RS256. Défaut du code :
 `false` (comportement historique) ; pin d'urgence `FEATURES_PIN_AUTH_VERIFY_TOKEN_CLAIMS=true|false`.
 
+### Webhook de déconnexion signé (`POST /api/auth/disconnect`, contrat home-auth PC7)
+
+home-auth envoie `{"userId"}` avec `X-Auth-Webhook-Id` (uuid v4), `X-Auth-Webhook-Timestamp` (secondes
+unix) et `X-Auth-Webhook-Signature: v1=<hex>[,v1=<hex>]`, où
+`hex = HMAC-SHA256(secret, id + "." + timestamp + "." + corps brut)`. La clé est la chaîne du secret
+(64 hex, UTF-8), pas ses octets décodés. Vérification (`domain/auth/webhook-signature.ts`) : octets
+exacts du corps (`rawBody`, capté par le `verify` du parseur JSON de `main.ts`, uniquement pour cette
+route : `bodyParser` est désactivé), `|now - timestamp| <= 120 s`, chaque entrée `v1=` décodée en 32
+octets puis `timingSafeEqual` (une entrée qui correspond suffit : recouvrement des secrets), id non
+vu dans les 10 dernières minutes (mémoire du processus, 10 000 ids au plus), format invalide : 401 (ou repli sur `?secret=`, voir ci-dessous).
+
+**Double acceptation** : signature valide OU ancien `?secret=` (`AUTH_WEBHOOK_SECRET`, comparé en
+`timingSafeEqual`), décidé par `application/auth/authenticate-logout-webhook.use-case.ts`. « En-têtes de
+signature présents » = l'un des trois `X-Auth-Webhook-*` non vide. Dès que l'id est non vide et déjà vu
+(10 min), la requête est refusée (401) **même avec un `?secret=` valide**, avant tout autre contrôle
+(format, secret de signature absent, corps brut) et avant le repli sur l'ancien secret : le rejeu n'est
+jamais accepté, flag ou non. L'id n'est mémorisé qu'après une signature authentique et fraîche. Sans
+aucun en-tête de signature : ancien `?secret=`. En-têtes présents mais invalides pour une autre raison
+(format, fenêtre, hmac) ou invérifiables (pas de secret de signature, corps brut indisponible) : repli sur
+l'ancien `?secret=` tant que le flag `auth-webhook-require-signature` (défaut du code `false`) est
+éteint ; à `true`, signature seule et `?secret=` refusé. Chaque acceptation par l'ancien `?secret=` émet un
+WARN limité à 1 par 5 min et par raison (`no-signature-headers`, `missing-signing-secret`, `format`,
+`window`, `hmac`, `raw-body-unavailable` ; jamais une valeur), et chaque acceptation par signature un INFO
+limité de la même façon (horloge injectable) : avant d'activer le flag strict, vérifier l'absence de WARN
+sur une journée complète de livraisons. `AUTH_WEBHOOK_SIGNING_SECRET` (optionnel) est validé au démarrage,
+y compris hors production : absent/vide, ou exactement 64 hex minuscules, sinon le démarrage échoue. Sans
+secret de signature : flag `false` = ancien chemin seul ; flag `true` = tout est refusé (401, erreur
+loguée une fois : on ne retombe jamais sur l'ancien secret en mode strict).
+Vecteurs de test : ceux de home-auth (`webhook-signer.spec.ts`), recopiés dans
+`webhook-signature.spec.ts`.
+
 ### 4.2 Auth des endpoints `/api/health/:apiKey/*` (machine-to-machine)
 
 - Pas de JWT ici : l'`apiKey` dans le path fait office de secret partagé.
@@ -280,6 +311,7 @@ AUTH_SERVICE_URL=https://auth.sloboda.fr
 AUTH_CLIENT_ID=home-health
 AUTH_CLIENT_SECRET=
 AUTH_WEBHOOK_SECRET=
+AUTH_WEBHOOK_SIGNING_SECRET=
 
 FRONTEND_URL=https://health.sloboda.fr
 PUBLIC_BASE_URL=https://health.sloboda.fr

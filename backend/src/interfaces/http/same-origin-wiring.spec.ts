@@ -9,6 +9,7 @@ import { ListApiKeysUseCase } from '../../application/api-keys/list-api-keys.use
 import { RevokeApiKeyUseCase } from '../../application/api-keys/revoke-api-key.use-case';
 import { OAuthClient } from '../../domain/auth/oauth-client';
 import { RevokedSessionRepository } from '../../domain/auth/revoked-session.repository';
+import { FeatureFlags } from '../../domain/shared/feature-flags';
 import { ApiKeysController } from './controllers/api-keys.controller';
 import { AuthController } from './controllers/auth.controller';
 import { HealthIngestionController } from './controllers/health-ingestion.controller';
@@ -76,6 +77,7 @@ describe('SameOriginGuard wiring', () => {
           { provide: RevokeApiKeyUseCase, useValue: { execute: revoke } },
           { provide: OAuthClient, useValue: {} },
           { provide: RevokedSessionRepository, useValue: {} },
+          { provide: FeatureFlags, useValue: {} },
         ],
       }).compile();
       app = moduleRef.createNestApplication<NestExpressApplication>();

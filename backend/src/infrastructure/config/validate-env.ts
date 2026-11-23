@@ -39,6 +39,16 @@ export function validateEnv(
       throw new Error(`${variable} is required`);
     }
   }
+  const signingSecret = env.AUTH_WEBHOOK_SIGNING_SECRET;
+  if (
+    signingSecret !== undefined &&
+    signingSecret !== '' &&
+    (typeof signingSecret !== 'string' || !/^[0-9a-f]{64}$/.test(signingSecret))
+  ) {
+    throw new Error(
+      'AUTH_WEBHOOK_SIGNING_SECRET must be 64 lowercase hexadecimal characters (the secret regenerated in the home-auth admin) or unset',
+    );
+  }
   if (env.MAX_PAYLOAD_SIZE !== undefined && env.MAX_PAYLOAD_SIZE !== '') {
     const size = Number(env.MAX_PAYLOAD_SIZE);
     if (!Number.isFinite(size) || size <= 0) {

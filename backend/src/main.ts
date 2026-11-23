@@ -2,9 +2,9 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import { json } from 'express';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { jsonBodyParser } from './interfaces/http/raw-body';
 import { applySecurityHeaders } from './interfaces/http/security-headers';
 import { setupSwagger } from './interfaces/http/swagger';
 
@@ -42,7 +42,8 @@ async function bootstrap(): Promise<void> {
   }
   // First middleware: every response (API, SPA files, /docs outside prod) gets the security headers.
   applySecurityHeaders(app);
-  app.use(json({ limit: MAX_PAYLOAD_SIZE }));
+  // Keeps the raw bytes of the home-auth logout webhook (signature, PC7): bodyParser is disabled above.
+  app.use(jsonBodyParser(MAX_PAYLOAD_SIZE));
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.use(cookieParser());
   // No CORS: the SPA is served by this service (same origin; the Vite dev
