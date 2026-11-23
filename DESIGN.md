@@ -287,7 +287,34 @@ MINIO_ACCESS_KEY_ID=
 MINIO_SECRET_ACCESS_KEY=
 
 MAX_PAYLOAD_SIZE=
+
+FEATURES_OFREP_URL=https://features.sloboda.fr/api
+FEATURES_API_KEY=
 ```
+
+### Feature flags (home-features)
+
+Le service lit des flags booléens dans [home-features](https://features.sloboda.fr) via OFREP
+(`@openfeature/server-sdk` + `@openfeature/ofrep-provider`), derrière le port
+`FeatureFlags.isEnabled(key, codeDefault)` (`backend/src/domain/shared/feature-flags.ts`). L'adaptateur
+(`backend/src/infrastructure/feature-flags/`) ne contient rien de propre à home-health : c'est la copie
+conforme de l'implémentation de référence de home-auth (PR home-auth#86).
+
+- **Configuration** : `FEATURES_OFREP_URL` (base `https://features.sloboda.fr/api`, https obligatoire
+  en production) et `FEATURES_API_KEY` (clé serveur liée à l'app et à l'environnement, format
+  `hf_` + 64 hex ; 1Password `HEALTH_FEATURES_API_KEY`). Absentes : tous les flags valent le défaut du
+  code (warning unique) ; invalides : idem, avec une erreur au démarrage. Le démarrage n'attend jamais
+  home-features.
+- **Évaluation** : délai de 500 ms par requête ; résultat mémorisé 30 s par clé. Valeur définie pour
+  l'environnement → cette valeur ; pas de valeur (`DISABLED`) ou flag inconnu (`FLAG_NOT_FOUND`) →
+  défaut du code ; autre erreur (réseau, délai, 401, 429, 5xx) → dernière valeur connue, sinon défaut
+  du code, mémorisé 30 s aussi, avec un warn au plus toutes les 5 min par flag et code d'erreur. La
+  dernière valeur connue est propre au processus : perdue au redémarrage.
+- **Pin d'urgence** : `FEATURES_PIN_<CLE_EN_MAJ_SNAKE>=true|false` (ex.
+  `FEATURES_PIN_AUTH_VERIFY_TOKEN_CLAIMS=false`) l'emporte sur tout, y compris sans home-features. Toute
+  autre valeur est ignorée (erreur loguée). Nécessite un redémarrage du conteneur.
+- `OFREP_ENDPOINT`, `OFREP_HEADERS` et `OFREP_TIMEOUT_MS`, que le provider lirait sinon, sont ignorés
+  et retirés de l'environnement au démarrage (warn).
 
 ## 12. Questions ouvertes (à valider avant/pendant l'implémentation)
 
