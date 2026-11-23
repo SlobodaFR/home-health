@@ -56,11 +56,17 @@ COPY --from=backend-build /app/backend/dist backend/dist
 COPY --from=backend-build /app/backend/package.json backend/package.json
 COPY backend/litestream.yml backend/litestream.yml
 COPY backend/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Run as the base image's non-root "node" user (uid 1000). It must own the
+# data dir (volume mount point: SQLite + Litestream -wal/-shm/.litestream
+# files) and, non-recursively, the WORKDIR itself so a relative
+# DATABASE_PATH resolved against /app/backend stays writable.
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && mkdir -p /app/backend/data
+    && mkdir -p /app/backend/data \
+    && chown node:node /app/backend /app/backend/data
 VOLUME ["/app/backend/data"]
 WORKDIR /app/backend
 EXPOSE 3000
+USER node
 # /healthz est interne (bloqué par Caddy). `fetch` de Node : l'image n'a pas besoin de curl.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD ["node", "-e", "fetch('http://127.0.0.1:3000/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
