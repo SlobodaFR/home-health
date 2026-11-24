@@ -50,6 +50,7 @@
     "unrs-resolver": false
   },
   "overrides": {
-    "multer": "2.5.0"
+    "multer": "2.5.0",
+    "body-parser": "1.20.9"
   }
 }
