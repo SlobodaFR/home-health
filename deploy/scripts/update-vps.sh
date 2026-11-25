@@ -15,13 +15,20 @@ export IMAGE_TAG
 # keep blocking pulls of an otherwise-public image.
 docker logout ghcr.io >/dev/null 2>&1 || true
 
+# Convention harnais image-retention : fait de la place AVANT le pull (garde keep-1 images par dépôt).
+sh "$DEPLOY_DIR/deploy/scripts/prune-service-images.sh" --phase pre \
+  --service health --image "$IMAGE" \
+  --tag "$IMAGE_TAG" --project home-health
 docker compose pull
 # Convention harnais deploy-wait-healthy : `docker compose up -d --wait` (repli : boucle docker inspect) ; un conteneur
 # qui n'est pas sain après 180 s fait échouer le déploiement (logs, sauvegarde et restauration affichées), sans retour arrière automatique.
 sh "$DEPLOY_DIR/deploy/scripts/compose-up-healthy.sh" --service health \
   --restore-args "--project home-health --volume home-health-data --mount /app/backend/data --db-path ${DATABASE_PATH:-/app/backend/data/home-health.sqlite}" \
   -- --remove-orphans
-docker image prune -f
+# Convention harnais image-retention : après un déploiement sain uniquement (set -e), garde 2 images par dépôt.
+sh "$DEPLOY_DIR/deploy/scripts/prune-service-images.sh" --phase post \
+  --service health --image "$IMAGE" \
+  --tag "$IMAGE_TAG" --project home-health
 
 if ! command -v caddy >/dev/null 2>&1; then
   sudo apt-get install -y -qq debian-keyring debian-archive-keyring apt-transport-https curl
