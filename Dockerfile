@@ -38,7 +38,7 @@ RUN npm run build --workspace=backend
 RUN npm prune --omit=dev \
     # L'override typescript de @nestjs/swagger 12 (peer optionnel, jamais utilise a l'execution :
     # seul son plugin de compilation l'importe) fait compter typescript comme dependance de prod.
-    && rm -rf node_modules/typescript node_modules/@typescript
+    && rm -rf node_modules/typescript node_modules/@typescript node_modules/.bin/tsc node_modules/.bin/tsserver
 
 # ---------- Runtime ----------
 FROM node:26-bookworm-slim AS runtime
