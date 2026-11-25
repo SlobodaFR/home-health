@@ -30,7 +30,12 @@ import { StatusModule } from './interfaces/http/modules/status.module';
       // Backend routes (everything under /api/**, plus health/status and
       // openapi.json which stay unprefixed - see main.ts) are excluded from
       // the SPA fallback so the frontend can be served at the root path.
-      exclude: ['/api*', '/health/status', '/healthz*', '/openapi.json'],
+      exclude: [
+        '/api{/*path}',
+        '/health/status',
+        '/healthz{/*path}',
+        '/openapi.json',
+      ],
     }),
     AuthModule,
     ApiKeysModule,

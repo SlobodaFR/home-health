@@ -92,7 +92,12 @@ describe('HTTP telemetry', () => {
       imports: [
         ServeStaticModule.forRoot({
           rootPath: staticRoot,
-          exclude: ['/api*', '/health/status', '/healthz*', '/openapi.json'],
+          exclude: [
+            '/api{/*path}',
+            '/health/status',
+            '/healthz{/*path}',
+            '/openapi.json',
+          ],
         }),
       ],
       controllers: [
