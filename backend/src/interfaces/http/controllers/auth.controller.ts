@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiQuery } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthenticateLogoutWebhookUseCase } from '../../../application/auth/authenticate-logout-webhook.use-case';
 import { OAuthClient } from '../../../domain/auth/oauth-client';
@@ -77,6 +78,7 @@ export class AuthController {
    * A replayed signature id is always refused (see AuthenticateLogoutWebhookUseCase).
    */
   @Public()
+  @ApiQuery({ name: 'secret', required: false, type: String, deprecated: true })
   @Post('disconnect')
   @HttpCode(204)
   async disconnect(

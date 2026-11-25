@@ -92,7 +92,12 @@ describe('HTTP telemetry', () => {
       imports: [
         ServeStaticModule.forRoot({
           rootPath: staticRoot,
-          exclude: ['/api*', '/health/status', '/healthz*', '/openapi.json'],
+          exclude: [
+            '/api{/*path}',
+            '/health/status',
+            '/healthz{/*path}',
+            '/openapi.json',
+          ],
         }),
       ],
       controllers: [
@@ -218,6 +223,13 @@ describe('HTTP telemetry', () => {
       .expect(404);
 
     expect(telemetry.captured).toEqual([]);
+  });
+
+  it('keeps backend paths out of the SPA fallback (JSON 404, not index.html)', async () => {
+    for (const path of ['/api/nope', '/api', '/healthz/x']) {
+      const res = await request(app.getHttpServer()).get(path).expect(404);
+      expect(res.headers['content-type']).toContain('application/json');
+    }
   });
 
   it('reports nothing for static assets and SPA fallback pages (served outside Nest routes)', async () => {
