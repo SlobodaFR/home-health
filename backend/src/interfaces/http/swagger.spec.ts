@@ -2,6 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { AuthController } from './controllers/auth.controller';
 import { setupSwagger } from './swagger';
 
 @Controller('ping')
@@ -44,6 +45,31 @@ describe('setupSwagger', () => {
     expect(response.body.servers).toEqual([
       expect.objectContaining({ url: 'https://example.test' }),
     ]);
+    await app.close();
+  });
+
+  it('keeps the deprecated ?secret= query of the logout webhook documented', async () => {
+    const moduleRef = await Test.createTestingModule({
+      controllers: [AuthController],
+    })
+      .useMocker(() => ({ get: () => undefined }))
+      .compile();
+    const app = moduleRef.createNestApplication<NestExpressApplication>();
+    setupSwagger(app, 'development');
+    await app.init();
+
+    const { body } = await request(app.getHttpServer())
+      .get('/openapi.json')
+      .expect(200);
+
+    expect(body.paths['/auth/disconnect'].post.parameters).toContainEqual(
+      expect.objectContaining({
+        name: 'secret',
+        in: 'query',
+        required: false,
+        deprecated: true,
+      }),
+    );
     await app.close();
   });
 });

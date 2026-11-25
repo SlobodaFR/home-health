@@ -226,10 +226,20 @@ describe('HTTP telemetry', () => {
   });
 
   it('keeps backend paths out of the SPA fallback (JSON 404, not index.html)', async () => {
-    for (const path of ['/api/nope', '/api', '/healthz/x']) {
+    for (const path of ['/api/nope', '/api']) {
       const res = await request(app.getHttpServer()).get(path).expect(404);
       expect(res.headers['content-type']).toContain('application/json');
     }
+  });
+
+  it('does not serve the SPA under /healthz sub-paths', async () => {
+    // Nest 12 scopes its JSON 404 handler to the global prefix and the exact excluded paths, so a
+    // sub-path of /healthz (internal, blocked by Caddy) gets Express's own 404 - never index.html.
+    const res = await request(app.getHttpServer())
+      .get('/healthz/x')
+      .expect(404);
+    expect(res.headers['content-type']).toContain('text/html');
+    expect(res.text).not.toContain('spa');
   });
 
   it('reports nothing for static assets and SPA fallback pages (served outside Nest routes)', async () => {
