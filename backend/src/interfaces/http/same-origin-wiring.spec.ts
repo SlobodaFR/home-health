@@ -7,6 +7,7 @@ import request from 'supertest';
 import { CreateApiKeyUseCase } from '../../application/api-keys/create-api-key.use-case';
 import { ListApiKeysUseCase } from '../../application/api-keys/list-api-keys.use-case';
 import { RevokeApiKeyUseCase } from '../../application/api-keys/revoke-api-key.use-case';
+import { InitiateServiceLogoutUseCase } from '../../application/auth/initiate-service-logout.use-case';
 import { OAuthClient } from '../../domain/auth/oauth-client';
 import { RevokedSessionRepository } from '../../domain/auth/revoked-session.repository';
 import { FeatureFlags } from '../../domain/shared/feature-flags';
@@ -78,6 +79,7 @@ describe('SameOriginGuard wiring', () => {
           { provide: OAuthClient, useValue: {} },
           { provide: RevokedSessionRepository, useValue: {} },
           { provide: FeatureFlags, useValue: {} },
+          { provide: InitiateServiceLogoutUseCase, useValue: {} },
         ],
       }).compile();
       app = moduleRef.createNestApplication<NestExpressApplication>();
@@ -110,7 +112,7 @@ describe('SameOriginGuard wiring', () => {
       await request(app.getHttpServer())
         .post('/auth/logout')
         .set('Origin', 'https://health.example.test')
-        .expect(204);
+        .expect(200);
     });
   });
 });

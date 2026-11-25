@@ -35,6 +35,28 @@ export function fetchCurrentUser(): Promise<{ user: CurrentUser }> {
   return request('/api/auth/me');
 }
 
+/**
+ * Local logout. `redirectTo` is home-auth's logout URL when the server runs the
+ * service-initiated flow (PC10), null for a local-only logout.
+ */
+export async function logout(): Promise<{ redirectTo: string | null }> {
+  const response = await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error(
+      `POST /api/auth/logout failed: ${response.status.toString()}`,
+    );
+  }
+  const body = (await response.json().catch(() => null)) as {
+    redirect_to?: unknown;
+  } | null;
+  return {
+    redirectTo: typeof body?.redirect_to === 'string' ? body.redirect_to : null,
+  };
+}
+
 export function fetchApiKeys(): Promise<ApiKey[]> {
   return request('/api/api-keys');
 }
