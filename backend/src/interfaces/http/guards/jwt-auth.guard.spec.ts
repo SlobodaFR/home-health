@@ -54,6 +54,7 @@ describe('JwtAuthGuard', () => {
       authorizeUrl: vi.fn(),
       exchangeCode: vi.fn(),
       refresh,
+      logoutUrl: vi.fn(),
     };
 
     getRevokedAt = vi.fn().mockResolvedValue(null);

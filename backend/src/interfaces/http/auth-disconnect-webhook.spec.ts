@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { InitiateServiceLogoutUseCase } from '../../application/auth/initiate-service-logout.use-case';
 import { OAuthClient } from '../../domain/auth/oauth-client';
 import { RevokedSessionRepository } from '../../domain/auth/revoked-session.repository';
 import { computeWebhookSignature } from '../../domain/auth/webhook-signature';
@@ -41,6 +42,7 @@ describe('POST /api/auth/disconnect (signed webhook, PC7, double acceptance)', (
         { provide: OAuthClient, useValue: {} },
         { provide: RevokedSessionRepository, useValue: { markRevoked } },
         { provide: FeatureFlags, useValue: flags },
+        { provide: InitiateServiceLogoutUseCase, useValue: {} },
         {
           provide: ConfigService,
           useValue: {

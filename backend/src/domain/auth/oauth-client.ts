@@ -14,4 +14,13 @@ export abstract class OAuthClient {
   abstract authorizeUrl(redirectUri: string): string;
   abstract exchangeCode(code: string, redirectUri: string): Promise<TokenPair>;
   abstract refresh(refreshToken: string): Promise<TokenPair>;
+  /**
+   * URL of home-auth's service-initiated logout (contract PC10), to be reached by a top-level
+   * navigation. The access token hint is a bearer token: it must only ever be sent to home-auth.
+   */
+  abstract logoutUrl(params: {
+    postLogoutRedirectUri: string;
+    state: string;
+    accessTokenHint?: string;
+  }): string;
 }

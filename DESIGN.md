@@ -369,6 +369,30 @@ conforme de l'implémentation de référence de home-auth (PR home-auth#86).
 - `OFREP_ENDPOINT`, `OFREP_HEADERS` et `OFREP_TIMEOUT_MS`, que le provider lirait sinon, sont ignorés
   et retirés de l'environnement au démarrage (warn).
 
+### Déconnexion initiée par le service (PC10)
+
+Flag home-features `auth-rp-initiated-logout` (propre à home-health, distinct de celui de home-auth ;
+défaut du code `false`, app `home-health` dans home-features). `true` : `POST /api/auth/logout` renvoie
+`{ redirect_to }` (URL de déconnexion de home-auth) que la SPA ouvre par navigation de premier niveau.
+`false` : déconnexion locale seule (`redirect_to: null`).
+
+`POST /api/auth/logout` (même origine, `SameOriginGuard`) efface toujours `access_token` et
+`refresh_token` (home-auth ne révoque rien), puis, flag actif, pose le cookie `logout_state` (httpOnly,
+`SameSite=Lax`, `Path=/api/auth`, 10 min, `Secure` en production) et renvoie
+`{ redirect_to }` = `GET <AUTH_SERVICE_URL>/logout?client_id&post_logout_redirect_uri&state[&access_token_hint]`.
+Le hint est l'access token du cookie s'il est valide, sinon un access token obtenu par refresh (3 s max ;
+échec = pas de hint, donc écran de confirmation de home-auth, jamais un signal de déconnexion). Le
+`post_logout_redirect_uri` est `PUBLIC_BASE_URL/api/auth/logged-out` (même origine que la redirectUri
+enregistrée). `GET /api/auth/logged-out?state=` compare le `state` au cookie (état absent, répété ou
+différent : `/` sans bandeau), efface le cookie et redirige vers `FRONTEND_URL/?logged_out=1` (bandeau
+« Vous avez été déconnecté. » sur l'écran de connexion, jamais d'`/authorize` automatique). Réponses en
+`Cache-Control: no-store`.
+
+Ordre d'activation : activer d'abord le flag dans home-auth, puis celui de home-health. Retour arrière :
+désactiver home-health d'abord (ou `FEATURES_PIN_AUTH_RP_INITIATED_LOGOUT=false` + redémarrage).
+home-health actif alors que home-auth est inactif : l'utilisateur est déconnecté de home-health puis
+arrive sur un `404` JSON de home-auth.
+
 ## 12. Questions ouvertes (à valider avant/pendant l'implémentation)
 
 1. **Format exact des payloads** `symptoms`/`ecg`/`heartRateNotifications`/

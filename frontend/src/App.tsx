@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ApiKeysPage } from './ApiKeysPage';
-import { CurrentUser, fetchCurrentUser } from './api';
+import { CurrentUser, fetchCurrentUser, logout } from './api';
 
 export function App(): JSX.Element {
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -28,12 +28,19 @@ export function App(): JSX.Element {
   }
 
   if (!user) {
+    const loggedOut =
+      new URLSearchParams(window.location.search).get('logged_out') === '1';
     return (
       <div className="page center-block">
         <h1 className="brand">home-health</h1>
         <p className="tagline">
           Ingestion et lecture de vos donnees Apple Health.
         </p>
+        {loggedOut && (
+          <p className="tagline" role="status">
+            Vous avez été déconnecté.
+          </p>
+        )}
         <div style={{ marginTop: 24 }}>
           <a className="btn btn-primary" href="/api/auth/login">
             Se connecter avec home-auth
@@ -56,11 +63,13 @@ export function App(): JSX.Element {
             href="/api/auth/logout"
             onClick={(e) => {
               e.preventDefault();
-              void fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-              }).then(() => {
-                window.location.reload();
+              void logout().then(({ redirectTo }) => {
+                // Top-level navigation (never fetch): home-auth's logout needs its SSO cookie.
+                if (redirectTo) {
+                  window.location.assign(redirectTo);
+                } else {
+                  window.location.reload();
+                }
               });
             }}
           >
