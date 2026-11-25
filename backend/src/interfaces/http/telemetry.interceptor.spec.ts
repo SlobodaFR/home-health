@@ -225,6 +225,13 @@ describe('HTTP telemetry', () => {
     expect(telemetry.captured).toEqual([]);
   });
 
+  it('keeps backend paths out of the SPA fallback (JSON 404, not index.html)', async () => {
+    for (const path of ['/api/nope', '/api', '/healthz/x']) {
+      const res = await request(app.getHttpServer()).get(path).expect(404);
+      expect(res.headers['content-type']).toContain('application/json');
+    }
+  });
+
   it('reports nothing for static assets and SPA fallback pages (served outside Nest routes)', async () => {
     await request(app.getHttpServer()).get('/app.js').expect(200);
     await request(app.getHttpServer()).get('/').expect(200);
