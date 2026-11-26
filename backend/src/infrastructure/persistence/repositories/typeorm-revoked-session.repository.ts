@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { RevokedSessionRepository } from '../../../domain/auth/revoked-session.repository';
 import { RevokedSessionOrmEntity } from '../entities/revoked-session.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 @Injectable()
 export class TypeOrmRevokedSessionRepository extends RevokedSessionRepository {
-  constructor(
-    @InjectRepository(RevokedSessionOrmEntity)
-    private readonly repository: Repository<RevokedSessionOrmEntity>,
-  ) {
+  constructor(private readonly dataSource: DataSource) {
     super();
+  }
+
+  private get repository() {
+    return currentManager(this.dataSource).getRepository(
+      RevokedSessionOrmEntity,
+    );
   }
 
   async markRevoked(userId: string, revokedAt: Date): Promise<void> {

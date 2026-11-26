@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
 import { ApiKey } from '../../../domain/api-key/api-key';
 import { ApiKeyRepository } from '../../../domain/api-key/api-key.repository';
 import { ApiKeyOrmEntity } from '../entities/api-key.orm-entity';
+import { currentManager } from '../typeorm-unit-of-work';
 
 @Injectable()
 export class TypeOrmApiKeyRepository extends ApiKeyRepository {
-  constructor(
-    @InjectRepository(ApiKeyOrmEntity)
-    private readonly repository: Repository<ApiKeyOrmEntity>,
-  ) {
+  constructor(private readonly dataSource: DataSource) {
     super();
+  }
+
+  private get repository() {
+    return currentManager(this.dataSource).getRepository(ApiKeyOrmEntity);
   }
 
   async findById(id: string): Promise<ApiKey | null> {

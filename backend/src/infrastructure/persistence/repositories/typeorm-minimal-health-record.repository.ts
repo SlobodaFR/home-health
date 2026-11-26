@@ -70,7 +70,9 @@ export class TypeOrmMinimalHealthRecordRepository extends MinimalHealthRecordRep
     userId: string,
     query: DateRangeQuery,
   ): Promise<MinimalHealthRecord[]> {
-    const repository = this.dataSource.getRepository(ENTITY_BY_KIND[kind]);
+    const repository = currentManager(this.dataSource).getRepository(
+      ENTITY_BY_KIND[kind],
+    );
     const where: FindOptionsWhere<MinimalHealthRecordOrmEntity> = { userId };
     const dateWhere = dateRangeWhere(query);
     if (dateWhere) {
