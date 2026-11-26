@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { ormEntities } from './entities';
+import { serializeConnection } from './serialized-connection';
 
 /** Used by the TypeORM CLI (migration:generate / migration:run) outside of Nest's DI container. */
 export const AppDataSource = new DataSource({
@@ -11,3 +12,5 @@ export const AppDataSource = new DataSource({
   entities: ormEntities,
   migrations: [__dirname + '/migrations/*.js'],
 });
+
+serializeConnection(AppDataSource);
