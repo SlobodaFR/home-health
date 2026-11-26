@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
@@ -5,12 +8,12 @@ import { DatabaseModule } from './database.module';
 import { currentManager, TypeOrmUnitOfWork } from './typeorm-unit-of-work';
 
 describe('DatabaseModule', () => {
-  async function boot() {
+  async function boot(databasePath = ':memory:') {
     const moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           ignoreEnvFile: true,
-          load: [() => ({ DATABASE_PATH: ':memory:' })],
+          load: [() => ({ DATABASE_PATH: databasePath })],
         }),
         DatabaseModule,
       ],
@@ -60,5 +63,18 @@ describe('DatabaseModule', () => {
     expect(rows).toEqual([{ id: 'b' }]);
 
     await moduleRef.close();
+  });
+
+  it('wires SchemaGuard: boot refuses a database that drifted from the entities', async () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'db-')), 'drift.sqlite');
+    const first = await boot(file);
+    await first
+      .get(DataSource)
+      .query('DROP INDEX "IDX_a3baee01d8408cd3c0f89a9a97"');
+    await first.close();
+
+    await expect(boot(file)).rejects.toThrow(
+      /differs from the entities.*add a migration/,
+    );
   });
 });
