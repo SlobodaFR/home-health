@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormEntities } from './entities';
+import { serializedDataSourceFactory } from './serialized-connection';
 
 @Module({
   imports: [
@@ -25,6 +26,9 @@ import { ormEntities } from './entities';
         migrations: [__dirname + '/migrations/*.js'],
         synchronize: false,
       }),
+      // Before initialize(): migrations run on the serialized connection too
+      // (convention sqlite-serialized-transactions).
+      dataSourceFactory: serializedDataSourceFactory,
     }),
   ],
 })
