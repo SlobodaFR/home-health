@@ -20,6 +20,12 @@ sh "$DEPLOY_DIR/deploy/scripts/prune-service-images.sh" --phase pre \
   --service health --image "$IMAGE" \
   --tag "$IMAGE_TAG" --project home-health
 docker compose pull
+# Convention harnais docker-nonroot-volume : l'image tourne en uid 1000 mais le volume de donnees existant appartient a root
+# (cree par l'ancienne image). Le service est arrete puis le volume rendu a 1000:1000, avant le `up`. Idempotent.
+# ORDRE (non verifie par l'audit) : la sauvegarde pre-deploy-backup tourne AVANT ce script (deploy-vps.yml, sous le meme
+# verrou d'hote) ; ne jamais deplacer ce chown avant elle, ni apres compose-up-healthy.sh. `set -e` : pas de `||`.
+sh "$DEPLOY_DIR/deploy/scripts/fix-volume-owner.sh" --service health \
+  --project home-health --volume home-health-data --stop home-health
 # Convention harnais deploy-wait-healthy : `docker compose up -d --wait` (repli : boucle docker inspect) ; un conteneur
 # qui n'est pas sain après 180 s fait échouer le déploiement (logs, sauvegarde et restauration affichées), sans retour arrière automatique.
 sh "$DEPLOY_DIR/deploy/scripts/compose-up-healthy.sh" --service health \
