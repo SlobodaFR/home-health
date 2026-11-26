@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormEntities } from './entities';
+import { MIGRATIONS } from './migrations';
+import { SchemaGuard } from './schema-guard';
 import { serializedDataSourceFactory } from './serialized-connection';
 
 @Module({
@@ -23,7 +25,7 @@ import { serializedDataSourceFactory } from './serialized-connection';
         timeout: 5000,
         entities: ormEntities,
         migrationsRun: true,
-        migrations: [__dirname + '/migrations/*.js'],
+        migrations: MIGRATIONS,
         synchronize: false,
       }),
       // Before initialize(): migrations run on the serialized connection too
@@ -31,5 +33,6 @@ import { serializedDataSourceFactory } from './serialized-connection';
       dataSourceFactory: serializedDataSourceFactory,
     }),
   ],
+  providers: [SchemaGuard],
 })
 export class DatabaseModule {}
