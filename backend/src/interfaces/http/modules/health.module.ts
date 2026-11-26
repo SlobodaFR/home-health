@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResolveUserFromApiKeyUseCase } from '../../../application/api-keys/resolve-user-from-api-key.use-case';
 import { GetWorkoutUseCase } from '../../../application/health-data/get-workout.use-case';
 import { ListHealthMetricsUseCase } from '../../../application/health-data/list-health-metrics.use-case';
@@ -11,7 +10,6 @@ import { MinimalHealthRecordRepository } from '../../../domain/minimal-health-re
 import { RawIngestionRepository } from '../../../domain/raw-ingestion/raw-ingestion.repository';
 import { UnitOfWork } from '../../../domain/shared/unit-of-work';
 import { WorkoutRepository } from '../../../domain/workout/workout.repository';
-import { ormEntities } from '../../../infrastructure/persistence/entities';
 import { TypeOrmHealthMetricRepository } from '../../../infrastructure/persistence/repositories/typeorm-health-metric.repository';
 import { TypeOrmMinimalHealthRecordRepository } from '../../../infrastructure/persistence/repositories/typeorm-minimal-health-record.repository';
 import { TypeOrmRawIngestionRepository } from '../../../infrastructure/persistence/repositories/typeorm-raw-ingestion.repository';
@@ -23,14 +21,7 @@ import { ApiKeyGuard } from '../guards/api-key.guard';
 import { ApiKeysModule } from './api-keys.module';
 
 @Module({
-  imports: [
-    // The six minimal-record entities aren't directly @InjectRepository()'d
-    // (TypeOrmMinimalHealthRecordRepository resolves them dynamically from
-    // DataSource by kind), but forFeature must still know about them for
-    // DataSource.getRepository() to find their metadata.
-    TypeOrmModule.forFeature(ormEntities),
-    ApiKeysModule,
-  ],
+  imports: [ApiKeysModule],
   controllers: [HealthIngestionController, HealthReadController],
   providers: [
     {

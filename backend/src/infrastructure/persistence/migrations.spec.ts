@@ -170,4 +170,26 @@ describe('database migrations', () => {
     expect(declared).toHaveLength(ormEntities.length);
     await ds.destroy();
   });
+
+  // A mistaken `migration:revert` must not wipe production: the baseline refuses.
+  it('refuse to revert the baseline migration and keep the data', async () => {
+    const ds = dataSource(':memory:');
+    await ds.initialize();
+    await ds.runMigrations();
+    for (const sql of await sampleRows(ds)) await ds.query(sql);
+    const rowsBefore = await dumpRows(ds);
+
+    // The revert undoes the latest migration first, then the baseline.
+    await ds.undoLastMigration();
+    const tablesBeforeBaseline = await tablesOf(ds);
+    await expect(ds.undoLastMigration()).rejects.toThrow(
+      /baseline migration: revert not supported, restore a backup/,
+    );
+
+    expect(await tablesOf(ds)).toEqual(tablesBeforeBaseline);
+    expect(tablesBeforeBaseline).toEqual(
+      Object.keys(rowsBefore).filter((table) => table !== 'revoked_sessions'),
+    );
+    await ds.destroy();
+  });
 });

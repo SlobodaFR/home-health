@@ -96,36 +96,10 @@ export class InitSchema1787572677428 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX "IDX_dc640dba06464a9d99c48b0891"`);
-    await queryRunner.query(`DROP INDEX "IDX_2df679279a7ac263bcff20c78d"`);
-    await queryRunner.query(`DROP TABLE "workouts"`);
-    await queryRunner.query(`DROP INDEX "IDX_0b5a43e038417e162361bd2938"`);
-    await queryRunner.query(`DROP INDEX "IDX_2e71f3acf01760171725ec17bb"`);
-    await queryRunner.query(`DROP TABLE "symptoms"`);
-    await queryRunner.query(`DROP INDEX "IDX_0ef26dfd101f4c5a3fdab8709b"`);
-    await queryRunner.query(`DROP INDEX "IDX_1c0eda7e1f256d55bc648c6eda"`);
-    await queryRunner.query(`DROP TABLE "state_of_mind_entries"`);
-    await queryRunner.query(`DROP INDEX "IDX_f2b6385a9fa2a1b26886d264a0"`);
-    await queryRunner.query(`DROP TABLE "raw_ingestions"`);
-    await queryRunner.query(`DROP INDEX "IDX_15b268e1d2b2426f77d0f6a5c8"`);
-    await queryRunner.query(`DROP INDEX "IDX_3269fbe72417d0bd8166903439"`);
-    await queryRunner.query(`DROP TABLE "medication_entries"`);
-    await queryRunner.query(`DROP INDEX "IDX_bd503d4ed432e405da992f42fc"`);
-    await queryRunner.query(`DROP INDEX "IDX_e126a407a473c2cafd2b7cd6d6"`);
-    await queryRunner.query(`DROP TABLE "heart_rate_notifications"`);
-    await queryRunner.query(`DROP INDEX "IDX_c4b7b2ec5068ae42bdb92623d5"`);
-    await queryRunner.query(`DROP INDEX "IDX_679b5bf7dc50ed9320af2c42a8"`);
-    await queryRunner.query(`DROP INDEX "IDX_ecadd5ce9c0fe5f5f6c93ddabb"`);
-    await queryRunner.query(`DROP INDEX "IDX_7e75554556598bce9347a6ad80"`);
-    await queryRunner.query(`DROP TABLE "health_metrics"`);
-    await queryRunner.query(`DROP INDEX "IDX_8b9dcaed6a8e1c5238caf22c73"`);
-    await queryRunner.query(`DROP INDEX "IDX_adf2a456832f8a73f523f2e0ed"`);
-    await queryRunner.query(`DROP TABLE "ecg_readings"`);
-    await queryRunner.query(`DROP INDEX "IDX_3fa33c37f0b7de2248765229be"`);
-    await queryRunner.query(`DROP INDEX "IDX_748009d784219430c1b9fc63a3"`);
-    await queryRunner.query(`DROP TABLE "cycle_tracking_entries"`);
-    await queryRunner.query(`DROP INDEX "IDX_a3baee01d8408cd3c0f89a9a97"`);
-    await queryRunner.query(`DROP TABLE "api_keys"`);
+  // Baseline: reverting it would drop every table (and the data in them).
+  public down(): Promise<void> {
+    return Promise.reject(
+      new Error('baseline migration: revert not supported, restore a backup'),
+    );
   }
 }
