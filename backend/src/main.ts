@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { buildInfo } from './infrastructure/observability/build-info';
 import { jsonBodyParser } from './interfaces/http/raw-body';
 import { applySecurityHeaders } from './interfaces/http/security-headers';
 import { setupSwagger } from './interfaces/http/swagger';
@@ -31,6 +32,8 @@ async function bootstrap(): Promise<void> {
     exclude: [
       { path: 'health/status', method: RequestMethod.GET },
       { path: 'healthz', method: RequestMethod.GET },
+      // Public release identity (convention harnais release-versioning), not blocked by Caddy.
+      { path: 'version', method: RequestMethod.GET },
     ],
   });
   // Number of reverse-proxy hops to trust for X-Forwarded-For (req.ip feeds the rate limit).
@@ -55,6 +58,10 @@ async function bootstrap(): Promise<void> {
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
+  const { version, commit } = buildInfo();
+  app
+    .get(Logger)
+    .log(`home-health started version=${version} commit=${commit}`);
 }
 
 void bootstrap();

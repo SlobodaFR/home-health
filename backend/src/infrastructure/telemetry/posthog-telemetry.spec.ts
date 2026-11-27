@@ -127,6 +127,7 @@ describe('PostHogTelemetry', () => {
       properties: {
         ...runtimeHealth.properties,
         service: 'home-health',
+        version: 'dev',
         $ip: null,
         $process_person_profile: false,
       },
@@ -152,9 +153,25 @@ describe('PostHogTelemetry', () => {
       status: 200,
       duration_ms: 3,
       service: 'home-health',
+      version: 'dev',
       $ip: null,
       $process_person_profile: false,
     });
+  });
+
+  it('adds the release version (APP_VERSION) to every ops event', () => {
+    vi.stubEnv('APP_VERSION', '2.5.1');
+    const client = new FakeClient();
+    const telemetry = new PostHogTelemetry(client);
+
+    telemetry.capture(runtimeHealth);
+    telemetry.capture(runtimeHealth);
+
+    expect(client.captured.map((c) => c.properties['version'])).toEqual([
+      '2.5.1',
+      '2.5.1',
+    ]);
+    vi.unstubAllEnvs();
   });
 
   it('never throws into the caller', () => {

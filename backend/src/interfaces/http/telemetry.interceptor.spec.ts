@@ -56,6 +56,14 @@ class StatusController {
   }
 }
 
+@Controller('version')
+class VersionController {
+  @Get()
+  version(): string {
+    return 'ok';
+  }
+}
+
 @Controller('healthz')
 class HealthzController {
   @Get()
@@ -96,6 +104,7 @@ describe('HTTP telemetry', () => {
             '/api{/*path}',
             '/health/status',
             '/healthz{/*path}',
+            '/version{/*path}',
             '/openapi.json',
           ],
         }),
@@ -105,6 +114,7 @@ describe('HTTP telemetry', () => {
         ReadController,
         StatusController,
         HealthzController,
+        VersionController,
         AuthController,
       ],
       providers: [
@@ -121,6 +131,7 @@ describe('HTTP telemetry', () => {
       exclude: [
         { path: 'health/status', method: RequestMethod.GET },
         { path: 'healthz', method: RequestMethod.GET },
+        { path: 'version', method: RequestMethod.GET },
       ],
     });
     await app.init();
@@ -230,6 +241,12 @@ describe('HTTP telemetry', () => {
       const res = await request(app.getHttpServer()).get(path).expect(404);
       expect(res.headers['content-type']).toContain('application/json');
     }
+  });
+
+  it('does not report /version (public release identity, cost amplifier)', async () => {
+    await request(app.getHttpServer()).get('/version').expect(200);
+
+    expect(telemetry.captured).toEqual([]);
   });
 
   it('does not serve the SPA under /healthz sub-paths', async () => {
