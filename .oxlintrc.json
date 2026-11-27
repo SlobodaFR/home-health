@@ -8,7 +8,12 @@
   "options": {
     "typeAware": true
   },
-  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+    ".github/scripts/release-version.mjs"
+  ],
   "rules": {
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",

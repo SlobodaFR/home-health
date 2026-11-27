@@ -34,6 +34,7 @@ import { StatusModule } from './interfaces/http/modules/status.module';
         '/api{/*path}',
         '/health/status',
         '/healthz{/*path}',
+        '/version{/*path}',
         '/openapi.json',
       ],
     }),
